@@ -2,3 +2,4 @@ Flask
 Pillow
 lunar-python
 BeautifulSoup4
+requests
