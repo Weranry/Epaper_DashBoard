@@ -28,9 +28,9 @@ app.add_url_rule('/schedule/json', view_func=schedule_json_api.get_schedule_json
 app.add_url_rule('/schedule/img', view_func=schedule_image_api.get_schedule_image, methods=['GET'])
 
 # 添加 favicon.ico 路由
-@app.route('/favicon.ico')
-def favicon():
-    return send_from_directory('static', 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+#app.route('/favicon.ico')
+#def favicon():
+#    return send_from_directory('static', 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 if __name__ == '__main__':
     app.run(debug=True)
