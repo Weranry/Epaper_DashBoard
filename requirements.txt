@@ -1,4 +1,4 @@
 Flask
 Pillow
 lunar-python
-BeautifulSoup
+BeautifulSoup4
