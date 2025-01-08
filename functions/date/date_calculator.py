@@ -1,9 +1,12 @@
 from datetime import datetime
 from lunar_python import Solar, Lunar
+import pytz
 
 class DateCalculator:
-    def __init__(self):
-        self._now = datetime.now()
+    def __init__(self, timezone='Asia/Shanghai'):
+        # 设置时区
+        self.timezone = pytz.timezone(timezone)
+        self._now = datetime.now(self.timezone)
         self._solar = Solar.fromDate(self._now)
         self._lunar = Lunar.fromDate(self._now)
     

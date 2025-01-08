@@ -1,5 +1,7 @@
 Flask
 Pillow
 lunar-python
-BeautifulSoup4
 requests
+pytz
+beautifulsoup4
+qrcode

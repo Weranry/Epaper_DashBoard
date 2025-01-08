@@ -1,5 +1,5 @@
 from flask import jsonify
-from web.analysis.weather_analysis import WeatherAnalysis
+from web.weather.weather_analysis import WeatherAnalysis
 import requests
 
 class WeatherJsonAPI:

@@ -1,5 +1,5 @@
 from flask import send_file
-from web.analysis.weather_analysis import WeatherAnalysis
+from web.weather.weather_analysis import WeatherAnalysis
 from image.weather.weather_image_creator import WeatherImageCreator
 import requests
 
