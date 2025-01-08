@@ -3,7 +3,7 @@ from web.mmc_calendar.mmc_calendar_fetcher import fetch_mmc_calendar_image
 from image.mmc_calendar.mmc_calendar_image_creator import create_mmc_calendar_image
 import requests
 import datetime
-import os
+import io  # 导入io模块以处理内存中的图像
 
 class MMCImageAPI:
     def get_mmc_image(self, channel):
@@ -18,12 +18,9 @@ class MMCImageAPI:
         # 创建图像
         img = create_mmc_calendar_image(image_data)
 
-        # 生成文件名
-        today = datetime.datetime.now()
-        filename = f"{channel}_{today.strftime('%y%m%d')}.jpeg"
+        # 将图像保存到内存中的字节流
+        img_byte_arr = io.BytesIO()
+        img.save(img_byte_arr, format='JPEG')
+        img_byte_arr.seek(0)  # 将指针移动到字节流的开头
 
-        # 保存图像为JPEG格式
-        output_path = os.path.join(os.path.dirname(__file__), filename)
-        img.save(output_path, 'JPEG')
-
-        return send_file(output_path, mimetype='image/jpeg') 
+        return send_file(img_byte_arr, mimetype='image/jpeg') 
