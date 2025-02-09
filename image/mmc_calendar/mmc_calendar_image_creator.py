@@ -15,8 +15,4 @@ def create_mmc_calendar_image(image_data):
     im = Image.frombytes('1', (h, w), bytes(view))
     im2 = im.transpose(method=Image.TRANSPOSE)
 
-    # 创建一个新的空白图像，大小为800x480
-    new_im = Image.new('1', (w, 800), 1)  # 1表示白色背景
-    new_im.paste(im2, (0, 80))  # 将原图粘贴到新图的中间位置
-
-    return new_im 
+    return im2 

@@ -1,6 +1,7 @@
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 import os
+from functions.date.date_calculator import DateCalculator  # 只导入 DateCalculator
 
 class DateImageCreator:
     def __init__(self):
@@ -20,17 +21,19 @@ class DateImageCreator:
         draw = ImageDraw.Draw(img)
         
         # 绘制公历日期和星期
-        solar_text = f"{date_data['solar']['solar_year']}-{date_data['solar']['solar_month']}-{date_data['solar']['solar_day']} | {date_data['solar']['weekday']}"
+        solar_text = f"{date_data['solar']['solar_year']}/{date_data['solar']['solar_month']}/{date_data['solar']['solar_day']} {date_data['solar']['weekday']}"
         draw.text((10, 10), solar_text, font=self.title_font, fill=1)
+
+        # 绘制农历日期
+        lunar_text = f"农历{date_data['lunar']['lunar_month']}{date_data['lunar']['lunar_day']}"
+        draw.text((10, 38), lunar_text, font=self.title_font, fill=1)
         
         # 绘制干支纪年
-        ganzhi_text = f"{date_data['ganzhi']['ganzhi_year']} {date_data['ganzhi']['ganzhi_month']} {date_data['ganzhi']['ganzhi_day']}"
-        draw.text((10, 35), ganzhi_text, font=self.content_font, fill=1)
-        
-        # 绘制农历日期
-        lunar_text = f"{date_data['lunar']['lunar_month']} {date_data['lunar']['lunar_day']}"
-        draw.text((10, 60), lunar_text, font=self.title_font, fill=1)
- 
+        ganzhi_text = f"{date_data['ganzhi']['ganzhi_year']}[{date_data['ganzhi']['shengxiao']}年]"
+        draw.text((10, 58), ganzhi_text, font=self.content_font, fill=1)
+        ganzhi_text2 = f"{date_data['ganzhi']['ganzhi_month']} {date_data['ganzhi']['ganzhi_day']}"
+        draw.text((10, 78), ganzhi_text2, font=self.content_font, fill=1)
+
         # 绘制放大版阳历日
         solar_day = date_data['solar']['solar_day']
         solar_day_bbox = draw.textbbox((0, 0), solar_day, font=self.large_font)
@@ -38,7 +41,7 @@ class DateImageCreator:
         
         # 绘制数九或伏
         if date_data['season']['fujiu']:
-            draw.text((390, 10), date_data['season']['fujiu'], font=self.title_font, fill=1, anchor="ra")
+            draw.text((380, 10), date_data['season']['fujiu'], font=self.title_font, fill=1, anchor="ra")
         
         # 绘制物候和节气
         season_text = f"{date_data['season']['wu_hou']} {date_data['season']['hou']}"

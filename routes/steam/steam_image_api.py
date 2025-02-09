@@ -1,19 +1,23 @@
 from flask import send_file, request
-from image.zhihu.zhihu_image_creator import ZhihuImageCreator
+from web.steam.get_steam import get_steam_data
+from image.steam.steam_image_creator import SteamImageCreator
 from PIL import ImageOps
 
-class ZhihuImageAPI:
-    def __init__(self):
-        self.creator = ZhihuImageCreator()
 
-    def get_zhihu_image(self):
+class SteamImageAPI:
+    def __init__(self):
+        self.creator = SteamImageCreator()
+
+    def get_steam_image(self, api_key, steam_id):
         # 获取请求参数
         invert = request.args.get('invert', 'false').lower() == 'true'
         rotate = int(request.args.get('rotate', 0))
 
-        img = self.creator.create_zhihu_image()
-        if img is None:
-            return "获取知乎数据失败", 500
+
+        steam_data = get_steam_data(api_key, steam_id)
+
+
+        img = self.creator.create_steam_image(steam_data)
 
         # 处理反色
         if invert:
@@ -23,5 +27,8 @@ class ZhihuImageAPI:
         if rotate in [90, 180, 270]:
             img = img.rotate(rotate, expand=True)
 
+
         img_io = self.creator.get_image_bytes(img)
-        return send_file(img_io, mimetype='image/jpeg') 
+
+
+        return send_file(img_io, mimetype='image/jpeg')

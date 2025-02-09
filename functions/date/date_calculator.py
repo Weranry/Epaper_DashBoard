@@ -14,7 +14,7 @@ class DateCalculator:
         solar_year = str(self._solar.getYear())
         solar_month = str(self._solar.getMonth()).zfill(2)
         solar_day = str(self._solar.getDay()).zfill(2)
-        weekdays = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
+        weekdays = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
         weekday = weekdays[self._now.weekday()]
         return {
             "solar_year": solar_year,
@@ -37,10 +37,12 @@ class DateCalculator:
         ganzhi_year = self._lunar.getYearInGanZhi() + "年"
         ganzhi_month = self._lunar.getMonthInGanZhi() + "月"
         ganzhi_day = self._lunar.getDayInGanZhi() + "日"
+        shengxiao = self._lunar.getYearShengXiao()
         return {
             "ganzhi_year": ganzhi_year,
             "ganzhi_month": ganzhi_month,
-            "ganzhi_day": ganzhi_day
+            "ganzhi_day": ganzhi_day,
+            "shengxiao": shengxiao
         }
 
     def get_season_info(self):
@@ -48,6 +50,10 @@ class DateCalculator:
         hou = self._lunar.getHou()
         shu_jiu = self._lunar.getShuJiu()
         fu = self._lunar.getFu()
+        if shu_jiu:
+            shu_jiu = shu_jiu.toFullString()
+        if fu:
+            fu = fu.toFullString()
         FuJiu = f"{shu_jiu}" if shu_jiu else f"{fu}" if fu else ""
         return {
             "wu_hou": wu_hou,
@@ -63,4 +69,5 @@ class DateCalculator:
         return {
             "solar_festival": " ".join(solar_festivals + solar_other_festivals),
             "lunar_festival": " ".join(lunar_festivals + lunar_other_festivals)
-        } 
+        }
+
