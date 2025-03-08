@@ -13,6 +13,8 @@ from routes.mmc_calendar.mmc_calendar_api import MMCImageAPI
 from routes.date.month_image_api import MonthImageAPI
 from routes.steam.steam_image_api import SteamImageAPI
 from routes.date.today_huangli_image_api import huangliImageAPI
+from routes.date.today_huangli_image_A_api import huangliImageAAPI
+huangli_image_A_api = huangliImageAAPI()
 
 
 app = Flask(__name__)
@@ -42,11 +44,12 @@ app.add_url_rule('/Steam/getimg/<api_key>/<steam_id>', view_func=steam_image_api
 app.add_url_rule('/schedule/json', view_func=schedule_json_api.get_schedule_json, methods=['GET'])
 app.add_url_rule('/schedule/img', view_func=schedule_image_api.get_schedule_image, methods=['GET'])
 app.add_url_rule('/date/huangli/b', view_func=huangli_image_api.get_huangli_image,methods=['GET'])
+app.add_url_rule('/date/huangli/a', view_func=huangli_image_A_api.get_huangli_A_image,methods=['GET'])
 
 # 添加 favicon.ico 路由
 @app.route('/favicon.ico')
 def favicon():
-    return send_from_directory('static', 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+    return send_from_directory('assets/logo', 'logo.ico', mimetype='image/vnd.microsoft.icon')
 
 if __name__ == '__main__':
     app.run(debug=True)#使用本地服务器调试 + vercel 部署选这个
