@@ -64,7 +64,7 @@ def get_featured_article(soup):
 
 def get_news(soup):
     """
-    获取新闻动态内容（所有条目）
+    获取新闻动态内容（所有条目），排除"正在发生"和"最近逝世"相关内容
     
     参数:
         soup: BeautifulSoup对象
@@ -97,7 +97,10 @@ def get_news(soup):
                         # 去掉"（图）"标记
                         text = re.sub(r'（图）', '', text)
                         text = re.sub(r'\s+', ' ', text)
-                        result["新闻动态"].append(text)
+                        
+                        # 排除包含"正在发生"和"最近逝世"的条目，避免重复
+                        if not ("正在发生" in text or "最近逝世" in text):
+                            result["新闻动态"].append(text)
     
     return result
 
