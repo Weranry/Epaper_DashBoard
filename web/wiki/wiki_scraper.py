@@ -11,7 +11,7 @@ def get_wiki_page():
         BeautifulSoup对象
     """
     # 使用简体中文版本的URL
-    url = "https://zh.wikipedia.org/wiki/zh-cn/Wikipedia:%E9%A6%96%E9%A1%B5"
+    url = "https://zh.wikipedia.org/zh-cn/Wikipedia:%E9%A6%96%E9%A1%B5"
     
     # 设置用户代理来模拟浏览器
     headers = {
