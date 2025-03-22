@@ -98,9 +98,10 @@ def get_news(soup):
                         text = re.sub(r'（图）', '', text)
                         text = re.sub(r'\s+', ' ', text)
                         
-                        # 排除包含"正在发生"和"最近逝世"的条目，避免重复
-                        if not ("正在发生" in text or "最近逝世" in text):
-                            result["新闻动态"].append(text)
+                        # 截断包括“正在发生”之后的所有内容
+                        if "正在发生" in text:
+                            break
+                        result["新闻动态"].append(text)
     
     return result
 
