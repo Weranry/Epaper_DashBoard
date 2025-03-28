@@ -15,7 +15,7 @@ from routes.steam.steam_image_api import SteamImageAPI
 from routes.date.today_huangli_image_api import huangliImageAPI
 from routes.date.today_huangli_image_A_api import huangliImageAAPI
 from routes.wiki.wiki_image_api import WikiImageAPI
-
+from routes.sunnyclock.sunnyclock_image_api import SunnyClockImageAPI
 
 
 app = Flask(__name__)
@@ -34,6 +34,7 @@ steam_image_api = SteamImageAPI()
 huangli_image_api = huangliImageAPI()#huangliB
 huangli_image_A_api = huangliImageAAPI()
 wiki_image_api = WikiImageAPI()
+sunnyclock_image_api = SunnyClockImageAPI()  # 新增晴天钟API实例
 
 # 注册路由
 app.add_url_rule('/date/json', view_func=date_info_api.get_date_info, methods=['GET'])
@@ -49,6 +50,8 @@ app.add_url_rule('/schedule/img', view_func=schedule_image_api.get_schedule_imag
 app.add_url_rule('/date/huangli/b', view_func=huangli_image_api.get_huangli_image,methods=['GET'])
 app.add_url_rule('/date/huangli/a', view_func=huangli_image_A_api.get_huangli_A_image,methods=['GET'])
 app.add_url_rule('/wiki/img', view_func=wiki_image_api.get_wiki_image, methods=['GET'])
+app.add_url_rule('/sunnyclock/<float:lat>/<float:lon>', view_func=sunnyclock_image_api.get_sunnyclock_image, methods=['GET'])
+
 
 # 添加 favicon.ico 路由
 @app.route('/favicon.ico')

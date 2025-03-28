@@ -1,25 +1,19 @@
 from flask import send_file, request
-from image.wiki.wiki_image_generator import WikiImageCreator
+from image.sunnyclock.sunnyclock_image_creator import SunnyClockImageCreator
 from PIL import ImageOps
 
-class WikiImageAPI:
+class SunnyClockImageAPI:
     def __init__(self):
-        self.creator = WikiImageCreator()
+        self.creator = SunnyClockImageCreator()
 
-    def get_wiki_image(self):
+    def get_sunnyclock_image(self, lat, lon):
         # 获取请求参数
-        # width和height参数暂时被注释，使用固定尺寸
-        #width = request.args.get('width', default=480, type=int)
-        height = request.args.get('height', default=800, type=int)
-        #实验性的内容
-        
         invert = request.args.get('invert', 'false').lower() == 'true'
         rotate = int(request.args.get('rotate', 0))
 
-        # 创建图像 - 现在使用固定尺寸
-        img = self.creator.create_wiki_image()
+        img = self.creator.create_sunnyclock_image(lat, lon)
         if img is None:
-            return "获取维基百科数据失败", 500
+            return "获取晴天钟数据失败", 500
 
         # 处理反色
         if invert:
@@ -29,6 +23,5 @@ class WikiImageAPI:
         if rotate in [90, 180, 270]:
             img = img.rotate(rotate, expand=True)
 
-        # 获取字节流并返回
         img_io = self.creator.get_image_bytes(img)
         return send_file(img_io, mimetype='image/jpeg')

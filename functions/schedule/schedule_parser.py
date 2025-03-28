@@ -4,14 +4,18 @@ import pytz
 
 class ScheduleParser:
     def __init__(self, json_file_path, timezone='Asia/Shanghai'):
-        with open(json_file_path, 'r', encoding='utf-8') as file:
-            self.courses = json.load(file)['courses']
         self.timezone = pytz.timezone(timezone)
+        with open(json_file_path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+            self.courses = data['courses']
+            self.semester_start = datetime.strptime(
+                data['semesterStartDate'], 
+                '%Y-%m-%d'
+            ).replace(tzinfo=self.timezone)
 
     def get_today_schedule(self):
         current_date = datetime.now(self.timezone)
-        semester_start = datetime(2024, 9, 3, tzinfo=self.timezone)
-        week_number = ((current_date - semester_start).days // 7) + 1
+        week_number = ((current_date - self.semester_start).days // 7) + 1
         day_of_week = current_date.isoweekday()
 
         today_schedule = [{'lesson': i, 'course': {}} for i in range(1, 6)]
@@ -39,4 +43,4 @@ class ScheduleParser:
             } for i in range(1, 6)
         }
 
-        return {'dateInfo': date_info, 'schedule': formatted_schedule} 
+        return {'dateInfo': date_info, 'schedule': formatted_schedule}

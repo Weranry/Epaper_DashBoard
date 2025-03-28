@@ -1,5 +1,6 @@
 {
-    "courses": [
+  "semesterStartDate": "2025-02-24",  
+  "courses": [
        {
          "courseName": "波谱分析",
          "teacher": "赵霜",
