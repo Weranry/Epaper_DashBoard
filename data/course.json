@@ -1,83 +1,161 @@
 {
-  "semesterStartDate": "2025-02-24",  
+  "semesterStartDate": "2025-02-24",
   "courses": [
-       {
-         "courseName": "波谱分析",
-         "teacher": "赵霜",
-         "classroom": [
-           {"week": [8, 9, 10, 11, 12, 13, 14, 15], "dayOfWeek": 2, "lesson": 3, "room": "勤学楼402"},
-           {"week": [8, 9, 10, 11, 12, 13, 14, 15], "dayOfWeek": 4, "lesson": 2, "room": "勤学楼118"}
-         ]
-       },
-       {
-         "courseName": "高分子化学",
-         "teacher": "安丽平",
-         "classroom": [
-           {"week": [10, 11, 12, 13, 14, 15, 16, 17], "dayOfWeek": 3, "lesson": 2, "room": "博学楼113"},
-           {"week": [10, 11, 12, 13, 14, 15, 16, 17], "dayOfWeek": 5, "lesson": 1, "room": "博学楼201"}
-         ]
-       },
-       {
-         "courseName": "专业英语",
-         "teacher": "平贵臣",
-         "classroom": [
-           {"week": [1, 2, 3, 4, 5, 6, 7, 8, 9], "dayOfWeek": 3, "lesson": 2, "room": "博学楼113"},
-           {"week": [1, 2, 3, 4, 5, 6, 7, 8, 9], "dayOfWeek": 5, "lesson": 2, "room": "博学楼405"}
-         ]
-       },
-       {
-         "courseName": "环境化学",
-         "teacher": "海波",
-         "classroom": [
-           {"week": [1, 2, 3, 4, 5, 6, 7, 8, 9], "dayOfWeek": 2, "lesson": 2, "room": "博学楼601"},
-           {"week": [1, 2, 3, 4, 5, 6, 7, 8, 9], "dayOfWeek": 2, "lesson": 4, "room": "博学楼305"}
-         ]
-       },
-       {
-         "courseName": "化学文献检索与软件应用",
-         "teacher": "鲍亮亮",
-         "classroom": [
-           {"week": [1, 2, 3, 4, 5, 6, 7, 8, 9], "dayOfWeek": 1, "lesson": 5, "room": "勤学楼205"},
-           {"week": [1, 2, 3, 4, 5, 6, 7, 8, 9], "dayOfWeek": 3, "lesson": 3, "room": "勤学楼205"}
-         ]
-       },
-       {
-         "courseName": "形势与政策-5",
-         "teacher": "曹耕",
-         "classroom": [
-           {"week": [2, 3, 4, 5], "dayOfWeek": 2, "lesson": 44, "room": "博学楼211"},
-           {"week": [7], "dayOfWeek": 2, "lesson": 3, "room": "博学楼211"}
-         ]
-       },
-       {
-         "courseName": "物理化学实验Ⅱ",
-         "teacher": "高学艺",
-         "classroom": [
-           {"week": [4, 6, 8, 10, 12, 14, 16], "dayOfWeek": 5, "lesson": 3, "room": "西主物化251"},
-           {"week": [4, 6, 8, 10, 12, 14, 16], "dayOfWeek": 5, "lesson": 4, "room": "西主物化251"}
-         ]
-       },
-       {
-         "courseName": "习近平新时代中国特色社会主义思想概论",
-         "teacher": "王可",
-         "classroom": [
-           {"week": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], "dayOfWeek": 3, "lesson": 1, "room": "勤学楼302"},
-           {"week": [1, 2, 3, 4, 5, 6], "dayOfWeek": 2, "lesson": 3, "room": "勤学楼302"}
-         ]
-       },
-       {
-         "courseName": "大学体育3",
-         "teacher": "李海雁",
-         "classroom": [
-           {"week": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], "dayOfWeek": 1, "lesson": 4, "room": "西区体育馆"}
-         ]
-       },{
-         "courseName": "物理化学Ⅱ",
-         "teacher": "高学艺",
-         "classroom": [
-           {"week": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], "dayOfWeek": 1, "lesson": 1, "room": "博学楼305"},
-           {"week": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13], "dayOfWeek": 4, "lesson": 1, "room": "博学楼113"}
-         ]
-       }
-     ]
-   }
+    {
+      "courseName": "现代仪器分析",
+      "teacher": "平贵臣",
+      "classroom": [
+        {
+          "week": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+          "dayOfWeek": 2,
+          "lesson": 1,
+          "room": "博学楼401"
+        },
+        {
+          "week": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+          "dayOfWeek": 4,
+          "lesson": 2,
+          "room": "博学楼507"
+        }
+      ]
+    },
+    {
+      "courseName": "结构化学",
+      "teacher": "高学艺",
+      "classroom": [
+        {
+          "week": [1, 3, 5, 7, 9, 11, 13, 15],
+          "dayOfWeek": 3,
+          "lesson": 1,
+          "room": "博学楼405"
+        },
+        {
+          "week": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+          "dayOfWeek": 1,
+          "lesson": 2,
+          "room": "博学楼405"
+        }
+      ]
+    },
+    {
+      "courseName": "天然产物化学",
+      "teacher": "张玉辉",
+      "classroom": [
+        {
+          "week": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+          "dayOfWeek": 4,
+          "lesson": 1,
+          "room": "博学楼605"
+        },
+        {
+          "week": [2, 4, 6, 8, 10, 12, 14],
+          "dayOfWeek": 1,
+          "lesson": 3,
+          "room": "博学楼605"
+        }
+      ]
+    },
+    {
+      "courseName": "化工制图",
+      "teacher": "安瑞鑫",
+      "classroom": [
+        {
+          "week": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
+          "dayOfWeek": 5,
+          "lesson": 1,
+          "room": "博学楼109"
+        },
+        {
+          "week": [2, 4, 6, 8, 10, 12, 14, 16],
+          "dayOfWeek": 2,
+          "lesson": 2,
+          "room": "博学楼109"
+        }
+      ]
+    },
+    {
+      "courseName": "食品质量与安全管理学",
+      "teacher": "额尔敦巴雅尔",
+      "classroom": [
+        {
+          "week": [9, 10, 11, 12, 13, 14, 15, 16],
+          "dayOfWeek": 3,
+          "lesson": 2,
+          "room": "博学楼405"
+        },
+        {
+          "week": [9, 10, 11, 12, 13, 14, 15, 16],
+          "dayOfWeek": 5,
+          "lesson": 2,
+          "room": "博学楼405"
+        }
+      ]
+    },
+    {
+      "courseName": "形势与政策-6",
+      "teacher": "包乌云,关·博彦塔娜,宋艳,曹耕",
+      "classroom": [
+        {
+          "week": [5, 6, 7, 8],
+          "dayOfWeek": 3,
+          "lesson": 2,
+          "room": "博学楼301"
+        }
+      ]
+    },
+    {
+      "courseName": "大学生就业指导",
+      "teacher": "包乌云",
+      "classroom": [
+        {
+          "week": [1, 2, 3, 4, 5, 6, 7, 8],
+          "dayOfWeek": 5,
+          "lesson": 2,
+          "room": "博学楼405"
+        }
+      ]
+    },
+    {
+      "courseName": "现代仪器分析实验",
+      "teacher": "李金梅",
+      "classroom": [
+        {
+          "week": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+          "dayOfWeek": 2,
+          "lesson": 3,
+          "room": "西主仪器分析331"
+        },
+        {
+          "week": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+          "dayOfWeek": 2,
+          "lesson": 4,
+          "room": "西主仪器分析331"
+        }
+      ]
+    },
+    {
+      "courseName": "固体废物处理与处置",
+      "teacher": "王丽萍",
+      "classroom": [
+        {
+          "week": [1, 2, 3, 4, 5, 6, 7, 8],
+          "dayOfWeek": 5,
+          "lesson": 4,
+          "room": "博学楼207"
+        },
+        {
+          "week": [1, 2, 3, 4, 5, 6, 7, 8],
+          "dayOfWeek": 2,
+          "lesson": 5,
+          "room": "博学楼509"
+        },
+        {
+          "week": [9],
+          "dayOfWeek": 2,
+          "lesson": 5,
+          "room": "博学楼509"
+        }
+      ]
+    }
+  ]
+}

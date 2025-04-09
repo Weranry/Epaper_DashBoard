@@ -1,7 +1,8 @@
 import sys
 sys.dont_write_bytecode = True
 
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, jsonify
+from auth.auth import setup_auth
 from routes.date.date_info_api import DateInfoAPI
 from routes.date.date_image_api import DateImageAPI
 from routes.weather.now.weather_json_api import WeatherJsonAPI
@@ -17,26 +18,25 @@ from routes.date.today_huangli_image_A_api import huangliImageAAPI
 from routes.wiki.wiki_image_api import WikiImageAPI
 from routes.sunnyclock.sunnyclock_image_api import SunnyClockImageAPI
 
-
 app = Flask(__name__)
 
+setup_auth(app)
 # 实例化API类
 date_info_api = DateInfoAPI()
 date_image_api = DateImageAPI()
 weather_json_api = WeatherJsonAPI()
 weather_image_api = WeatherImageAPI()
-schedule_json_api = ScheduleJsonAPI('data/course.json')  # 更新为实际路径
-schedule_image_api = ScheduleImageAPI('data/course.json')  # 更新为实际路径
+schedule_json_api = ScheduleJsonAPI('data/course.json')
+schedule_image_api = ScheduleImageAPI('data/course.json')
 zhihu_image_api = ZhihuImageAPI()
 mmc_image_api = MMCImageAPI()
 month_image_api = MonthImageAPI()
 steam_image_api = SteamImageAPI()
-huangli_image_api = huangliImageAPI()#huangliB
+huangli_image_api = huangliImageAPI()
 huangli_image_A_api = huangliImageAAPI()
 wiki_image_api = WikiImageAPI()
-sunnyclock_image_api = SunnyClockImageAPI()  # 新增晴天钟API实例
+sunnyclock_image_api = SunnyClockImageAPI()
 
-# 注册路由
 app.add_url_rule('/date/json', view_func=date_info_api.get_date_info, methods=['GET'])
 app.add_url_rule('/date/img', view_func=date_image_api.get_date_image, methods=['GET'])
 app.add_url_rule('/weather/now/json/<location>', view_func=weather_json_api.get_weather_json, methods=['GET'])
@@ -47,17 +47,19 @@ app.add_url_rule('/date/monthimg', view_func=month_image_api.get_month_image, me
 app.add_url_rule('/Steam/getimg/<api_key>/<steam_id>', view_func=steam_image_api.get_steam_image, methods=['GET'])
 app.add_url_rule('/schedule/json', view_func=schedule_json_api.get_schedule_json, methods=['GET'])
 app.add_url_rule('/schedule/img', view_func=schedule_image_api.get_schedule_image, methods=['GET'])
-app.add_url_rule('/date/huangli/b', view_func=huangli_image_api.get_huangli_image,methods=['GET'])
-app.add_url_rule('/date/huangli/a', view_func=huangli_image_A_api.get_huangli_A_image,methods=['GET'])
+app.add_url_rule('/date/huangli/b', view_func=huangli_image_api.get_huangli_image, methods=['GET'])
+app.add_url_rule('/date/huangli/a', view_func=huangli_image_A_api.get_huangli_A_image, methods=['GET'])
 app.add_url_rule('/wiki/img', view_func=wiki_image_api.get_wiki_image, methods=['GET'])
 app.add_url_rule('/sunnyclock/<float:lat>/<float:lon>', view_func=sunnyclock_image_api.get_sunnyclock_image, methods=['GET'])
 
+@app.route('/status')
+def status():
+    return jsonify({"status": "running"}), 200
 
-# 添加 favicon.ico 路由
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory('assets/logo', 'logo.ico', mimetype='image/vnd.microsoft.icon')
 
 if __name__ == '__main__':
-    app.run(debug=True)#使用本地服务器调试 + vercel 部署选这个
-    #app.run(host='0.0.0.0', port=5000, debug=True)#使用本地 + 局域网服务器调试
+    app.run(debug=True)  # 使用本地服务器调试 + vercel 部署选这个
+    # app.run(host='0.0.0.0', port=5000, debug=True)  # 使用本地 + 局域网服务器调试
