@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenEpaperLink - Image_Url API</title>
+    <style>
+        /* 基础样式 */
+        :root {
+            --primary-color: #6e5494; /* GitHub紫色 */
+            --primary-color-light: #8a6db1;
+            --primary-color-dark: #5a4378;
+            --text-color: #24292e;
+            --text-color-light: #586069;
+            --border-color: #e1e4e8;
+            --code-bg-color: #f6f8fa;
+            --content-width: 960px;
+            --github-black: #24292e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            color: var(--text-color);
+            line-height: 1.6;
+            background-color: #fff;
+            /* Added for vertical centering */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 600;
+            line-height: 1.25;
+            margin-bottom: 0.5rem; /* Reduced from 1rem */
+        }
+
+        h1 {
+            font-size: 2.2rem;
+        }
+
+        h2 {
+            font-size: 1.65rem;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-top: 1.5rem; /* Reduced from 2rem */
+        }
+
+        h3 {
+            font-size: 1.35rem;
+        }
+
+        p {
+            margin: 0.5rem 0; /* Reduced from 1rem */
+        }
+
+        code {
+            font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+            padding: 0.25rem 0.5rem;
+            background-color: var(--code-bg-color);
+            border-radius: 3px;
+        }
+
+        pre {
+            background-color: var(--code-bg-color);
+            padding: 0.75rem; /* Reduced from 1rem */
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 0.75rem 0; /* Reduced from 1rem */
+        }
+
+        pre code {
+            padding: 0;
+            background-color: transparent;
+        }
+
+        ul, ol {
+            padding-left: 1.2em;
+            margin: 0.75rem 0; /* Reduced from 1rem */
+        }
+
+        /* 布局样式 */
+        .container {
+            max-width: var(--content-width);
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            /* Added for better vertical spacing */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* 头部样式 */
+        .header {
+            text-align: center;
+            padding: 1.5rem 0; /* Reduced from 3rem */
+        }
+
+        .logo-container {
+            margin-bottom: 1rem; /* Reduced from 1.5rem */
+        }
+
+        .logo {
+            width: 100px; /* Reduced from 120px */
+            height: auto;
+            margin-bottom: 0.5rem; /* Reduced from 1rem */
+        }
+
+        .title {
+            font-size: 2.5rem; /* Reduced from 3rem */
+            color: var(--text-color);
+            margin-bottom: 0.25rem; /* Reduced from 0.5rem */
+        }
+
+        .description {
+            font-size: 1.2rem; /* Reduced from 1.4rem */
+            color: var(--text-color-light);
+            margin-bottom: 1.5rem; /* Reduced from 2rem */
+        }
+
+        /* 按钮样式 */
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1.5rem 0; /* Reduced from 2rem */
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.6rem 1.25rem; /* Reduced from 0.75rem 1.5rem */
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .button-github {
+            background-color: var(--github-black);
+            color: white;
+        }
+
+        .button-github:hover {
+            background-color: #3a3a3a;
+            text-decoration: none;
+        }
+
+        .button-outline {
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .button-outline:hover {
+            background-color: rgba(110, 84, 148, 0.1);
+            text-decoration: none;
+        }
+
+        /* GitHub图标 */
+        .github-icon {
+            display: inline-block;
+            width: 18px; /* Reduced from 20px */
+            height: 18px; /* Reduced from 20px */
+            margin-right: 6px; /* Reduced from 8px */
+            background-color: white;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .github-icon::before {
+            content: "";
+            position: absolute;
+            top: 5px; /* Adjusted from 6px */
+            left: 5px; /* Adjusted from 6px */
+            width: 8px;
+            height: 8px;
+            background-color: var(--github-black);
+            border-radius: 50%;
+        }
+
+        .github-icon::after {
+            content: "";
+            position: absolute;
+            top: 3px;
+            right: 3px;
+            width: 5px; /* Reduced from 6px */
+            height: 5px; /* Reduced from 6px */
+            border: 2px solid var(--github-black);
+            border-radius: 2px;
+            transform: rotate(45deg);
+        }
+
+        /* 分隔线 */
+        .divider {
+            height: 1px;
+            background-color: var(--border-color);
+            margin: 1.5rem 0; /* Reduced from 3rem */
+        }
+
+        /* 特性部分 */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem; /* Reduced from 2rem */
+            margin: 1.5rem 0; /* Reduced from 3rem */
+        }
+
+        .feature {
+            padding: 1rem; /* Reduced from 1.5rem */
+            text-align: center; /* Added for better centering */
+        }
+
+        .feature-title {
+            font-weight: 600;
+            font-size: 1.2rem; /* Reduced from 1.4rem */
+            margin-bottom: 0.5rem; /* Reduced from 1rem */
+            color: var(--primary-color);
+        }
+
+        .feature-description {
+            color: var(--text-color-light);
+            font-size: 0.95rem; /* Added for better proportions */
+        }
+
+        /* 页脚 */
+        .footer {
+            text-align: center;
+            padding: 1.5rem 0; /* Reduced from 2rem */
+            color: var(--text-color-light);
+            border-top: 1px solid var(--border-color);
+            margin-top: 1.5rem; /* Reduced from 3rem */
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .features {
+                grid-template-columns: 1fr;
+            }
+
+            .buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .button {
+                width: 100%;
+                max-width: 250px; /* Reduced from 300px */
+                text-align: center;
+            }
+            
+            /* Added for better mobile spacing */
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .header {
+                padding: 1rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <header class="header">
+            <div class="logo-container">
+            <h1 class="title">EpaperDashboard</h1>
+            <p class="description">为墨水屏设备提供低功耗、高效率的信息展示</p>
+            
+            <div class="buttons">
+                <a href="https://github.com/Weranry/EpaperDashboard" class="button button-github">
+                    <span class="github-icon"></span>GitHub
+                </a>
+                <a href="https://Weranry.github.io/EpaperDashboard" class="button button-outline">查看文档</a>
+            </div>
+        </header>
+
+        <div class="divider"></div>
+
+        <!-- 特性部分 -->
+        <section class="features">
+            <div class="feature">
+                <h3 class="feature-title">简洁至上</h3>
+                <p class="feature-description">以最少的配置帮助你专注于创建优质的墨水屏内容展示。</p>
+            </div>
+            <div class="feature">
+                <h3 class="feature-title">低功耗设计</h3>
+                <p class="feature-description">利用墨水屏的特性。</p>
+            </div>
+            <div class="feature">
+                <h3 class="feature-title">高性能</h3>
+                <p class="feature-description">为每个预渲染生成静态图片。</p>
+            </div>
+        </section>
+        <!-- 页脚 -->
+        <footer class="footer">
+            <p>MIT 协议 | 版权所有 © 2017-2025 Weranry</p>
+        </footer>
+    </div>
+</body>
+</html>

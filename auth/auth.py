@@ -10,8 +10,8 @@ API_KEY = os.environ.get("API_KEY")
 
 # 不需要鉴权的路径列表
 EXEMPT_ROUTES = [
-    '/favicon.ico',  
-    '/status',
+    '/favicon.ico',
+    '/'
     # 可以添加其他不需要鉴权的路径
 ]
 

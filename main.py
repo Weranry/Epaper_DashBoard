@@ -1,7 +1,7 @@
 import sys
 sys.dont_write_bytecode = True
 
-from flask import Flask, send_from_directory, jsonify
+from flask import Flask, send_from_directory, render_template
 from auth.auth import setup_auth
 from routes.date.date_info_api import DateInfoAPI
 from routes.date.date_image_api import DateImageAPI
@@ -52,13 +52,13 @@ app.add_url_rule('/date/huangli/a', view_func=huangli_image_A_api.get_huangli_A_
 app.add_url_rule('/wiki/img', view_func=wiki_image_api.get_wiki_image, methods=['GET'])
 app.add_url_rule('/sunnyclock/<float:lat>/<float:lon>', view_func=sunnyclock_image_api.get_sunnyclock_image, methods=['GET'])
 
-@app.route('/status')
-def status():
-    return jsonify({"status": "running"}), 200
-
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory('assets/logo', 'logo.ico', mimetype='image/vnd.microsoft.icon')
+
+@app.route('/')
+def home():
+    return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(debug=True)  # 使用本地服务器调试 + vercel 部署选这个
