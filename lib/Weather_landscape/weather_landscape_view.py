@@ -3,7 +3,7 @@ import random
 import math
 import datetime
 from PIL import Image, ImageOps
-from .weather_landscape_fetcher import WeatherData, SunCalculator
+from .weather_landscape_fetcher import WeatherData
 
 class Sprites:
     """处理精灵图片绘制"""
@@ -498,59 +498,9 @@ class WeatherDrawer:
         # 阻止起始区域的绘制
         self.block_range(tline, 0, x0)
         
-        # 创建日出日落计算器
-        sun_calc = SunCalculator(weather_data.lat, weather_data.lon)
-        tf = t
         xpos = self.XSTART
-        obj_counter = 0
-        
-        # 绘制日出日落
-        for i in range(n_forecast + 1):
-            f = weather_data.get_forecast_at_time(tf)
-            if f is None:
-                continue
-            
-            t_sunrise = sun_calc.sunrise(tf)
-            t_sunset = sun_calc.sunset(tf)
-            t_noon = datetime.datetime(tf.year, tf.month, tf.day, 12, 0, 0, 0)
-            t_midn = datetime.datetime(tf.year, tf.month, tf.day, 0, 0, 0, 0) + datetime.timedelta(days=1)
-            
-            y_moon = self.ypos - self.YSTEP * 5 / 8
-            
-            # 绘制日出
-            if (tf <= t_sunrise) and (tf + dt > t_sunrise):
-                dx = self.time_diff_to_pixels(t_sunrise - tf) - self.XSTEP / 2
-                sprite.Draw("sun", 0, xpos + dx, y_moon)
-                obj_counter += 1
-                if obj_counter == 2:
-                    break
-            
-            # 绘制日落
-            if (tf <= t_sunset) and (tf + dt > t_sunset):
-                dx = self.time_diff_to_pixels(t_sunset - tf) - self.XSTEP / 2
-                sprite.Draw("moon", 0, xpos + dx, y_moon)
-                obj_counter += 1
-                if obj_counter == 2:
-                    break
-            
-            # 绘制中午标记
-            if (tf <= t_noon) and (tf + dt > t_noon):
-                dx = self.time_diff_to_pixels(t_noon - tf) - self.XSTEP / 2
-                ix = int(xpos + dx)
-                if ix < len(tline):
-                    sprite.Draw("flower", 1, ix, tline[ix] + 1)
-                    self.block_range(tline, ix - self.FLOWER_LEFT_PX, ix + self.FLOWER_RIGHT_PX)
-            
-            # 绘制午夜标记
-            if (tf <= t_midn) and (tf + dt > t_midn):
-                dx = self.time_diff_to_pixels(t_midn - tf) - self.XSTEP / 2
-                ix = int(xpos + dx)
-                if ix < len(tline):
-                    sprite.Draw("flower", 0, ix, tline[ix] + 1)
-                    self.block_range(tline, ix - self.FLOWER_LEFT_PX, ix + self.FLOWER_RIGHT_PX)
-            
-            xpos += self.XSTEP
-            tf += dt
+        n = int((self.XSTEP - self.XFLAT) / 2)
+        f_used = []
         
         # 绘制最高和最低温度
         is_tmin_printed = False
@@ -558,7 +508,6 @@ class WeatherDrawer:
         tf = t
         xpos = self.XSTART
         n = int((self.XSTEP - self.XFLAT) / 2)
-        f_used = []
         
         for i in range(n_forecast + 1):
             f = weather_data.get_forecast_at_time(tf)
