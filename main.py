@@ -4,7 +4,7 @@ from flask import Flask, send_from_directory, render_template
 
 #鉴权系统
 from auth.auth import setup_auth
-setup_auth(app)
+
 
 from routes.date.date_info_api import DateInfoAPI
 from routes.date.date_image_api import DateImageAPI
@@ -24,6 +24,8 @@ from routes.one_way.one_way_api import OneWayImageAPI
 from lib.Weather_landscape.weather_landscape_api import WeatherLandscapeAPI
 
 app = Flask(__name__)
+
+setup_auth(app)
 
 date_info_api = DateInfoAPI()
 date_image_api = DateImageAPI()
