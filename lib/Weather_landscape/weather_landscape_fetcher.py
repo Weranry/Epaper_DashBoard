@@ -1,6 +1,7 @@
 import json
 import datetime
 import requests
+import pytz
 from math import cos, sin, acos, asin, tan
 from math import degrees as deg, radians as rad
 
@@ -36,7 +37,9 @@ class WeatherData:
         self.pressure_min = pressure_min
         self.pressure_max = pressure_max
         self.weather_data = []
-        self.tzoffset = (datetime.datetime.now() - datetime.datetime.utcnow()).total_seconds()/(60*60)
+        # 使用pytz处理时区
+        self.local_tz = pytz.timezone('Asia/Shanghai')  # 默认使用中国时区，可以根据需要修改
+        self.tzoffset = datetime.datetime.now(self.local_tz).utcoffset().total_seconds()/(60*60)
         
         # 构建API请求URL
         self.reqstr = f"lat={self.lat}&lon={self.lon}&mode=json&APPID={self.api_key}"
@@ -70,8 +73,12 @@ class WeatherData:
         """处理从API获取的天气数据"""
         is_celsius = self.units_mode != self.TEMP_UNITS_FAHRENHEIT
         
+        # 使用pytz将UTC时间转换为本地时间
+        utc_time = datetime.datetime.utcfromtimestamp(int(data['dt']))
+        local_time = utc_time.replace(tzinfo=pytz.utc).astimezone(self.local_tz)
+        
         weather_info = {
-            'time': datetime.datetime.fromtimestamp(int(data['dt'])),
+            'time': local_time,
             'id': int(data['weather'][0]['id']),
             'clouds': int(data['clouds'].get('all', 0)) if 'clouds' in data else 0,
             'rain': 0.0,
@@ -171,12 +178,14 @@ class SunCalculator:
     def __init__(self, lat=40.906615, lon=111.133961):
         self.lat = lat
         self.lon = lon
-        self.tzoffset = (datetime.datetime.now() - datetime.datetime.utcnow()).total_seconds()/(60*60)
+        # 使用pytz处理时区
+        self.local_tz = pytz.timezone('Asia/Shanghai')  # 默认使用中国时区
+        self.tzoffset = datetime.datetime.now(self.local_tz).utcoffset().total_seconds()/(60*60)
     
     def sunrise(self, when=None):
         """计算日出时间"""
         if when is None:
-            when = datetime.datetime.now()
+            when = datetime.datetime.now(self.local_tz)
         self.__preptime(when)
         self.__calc()
         return self.__timefromdecimalday(self.sunrise_t, when)
@@ -184,7 +193,7 @@ class SunCalculator:
     def sunset(self, when=None):
         """计算日落时间"""
         if when is None:
-            when = datetime.datetime.now()
+            when = datetime.datetime.now(self.local_tz)
         self.__preptime(when)
         self.__calc()
         return self.__timefromdecimalday(self.sunset_t, when)
@@ -192,20 +201,27 @@ class SunCalculator:
     def solarnoon(self, when=None):
         """计算正午时间"""
         if when is None:
-            when = datetime.datetime.now()
+            when = datetime.datetime.now(self.local_tz)
         self.__preptime(when)
         self.__calc()
         return self.__timefromdecimalday(self.solarnoon_t, when)
     
     @staticmethod
     def __timefromdecimalday(day, when):
+        # 确保时间值在有效范围内
         hours = 24.0 * day
-        h = int(hours)
-        minutes = (hours - h) * 60
+        h = int(hours) % 24  # 使用模运算确保小时在0-23范围内
+        minutes = (hours - int(hours)) * 60
         m = int(minutes)
         seconds = (minutes - m) * 60
         s = int(seconds)
-        return datetime.datetime(when.year, when.month, when.day, h, m, s)
+        
+        try:
+            return datetime.datetime(when.year, when.month, when.day, h, m, s, tzinfo=when.tzinfo)
+        except ValueError as e:
+            # 如果仍然发生错误，记录并返回一个安全的时间
+            print(f"时间转换错误: {e}, 使用安全时间值")
+            return datetime.datetime(when.year, when.month, when.day, 12, 0, 0, tzinfo=when.tzinfo)
     
     def __preptime(self, when):
         self.day = when.toordinal() - (734124 - 40529)
