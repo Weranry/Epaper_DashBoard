@@ -3,7 +3,7 @@ import io
 import sys
 import os
 
-from .weather_landscape_fetcher import WeatherData
+from .weather_landscape_fetcher import WeatherData, SunCalculator
 from .weather_landscape_view import WeatherDrawer
 
 class WeatherLandscapeAPI:
@@ -20,13 +20,16 @@ class WeatherLandscapeAPI:
             if not key:
                 return jsonify({"error": "API key is required"}), 400
             
-            # 获取天气数据
+            # 获取天气数据，传递用户指定的经纬度
             weather_data = WeatherData(key, lat, lon, units, pressure_min, pressure_max)
             weather_data.get_weather_data()
             
-            # 生成图像
+            # 使用相同的经纬度初始化SunCalculator
+            sun_calculator = SunCalculator(lat, lon)
+            
+            # 生成图像，传递SunCalculator对象
             drawer = WeatherDrawer()
-            img = drawer.draw_weather(weather_data)
+            img = drawer.draw_weather(weather_data, sun_calculator)
             
             # 转换为字节流并发送
             img_byte_arr = io.BytesIO()

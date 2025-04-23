@@ -175,9 +175,17 @@ class WeatherData:
 class SunCalculator:
     """计算日出日落时间"""
     
-    def __init__(self, lat=40.906615, lon=111.133961):
+    def __init__(self, lat, lon):
+        """
+        初始化太阳计算器
+        
+        参数:
+            lat (float): 纬度，北为正
+            lon (float): 经度，东为正
+        """
         self.lat = lat
         self.lon = lon
+        
         # 使用pytz处理时区
         self.local_tz = pytz.timezone('Asia/Shanghai')  # 默认使用中国时区
         self.tzoffset = datetime.datetime.now(self.local_tz).utcoffset().total_seconds()/(60*60)
@@ -185,7 +193,9 @@ class SunCalculator:
     def sunrise(self, when=None):
         """计算日出时间"""
         if when is None:
-            when = datetime.datetime.now(self.local_tz)
+            when = datetime.datetime.now().replace(tzinfo=self.local_tz)
+        elif when.tzinfo is None:
+            when = when.replace(tzinfo=self.local_tz)
         self.__preptime(when)
         self.__calc()
         return self.__timefromdecimalday(self.sunrise_t, when)
@@ -193,7 +203,9 @@ class SunCalculator:
     def sunset(self, when=None):
         """计算日落时间"""
         if when is None:
-            when = datetime.datetime.now(self.local_tz)
+            when = datetime.datetime.now().replace(tzinfo=self.local_tz)
+        elif when.tzinfo is None:
+            when = when.replace(tzinfo=self.local_tz)
         self.__preptime(when)
         self.__calc()
         return self.__timefromdecimalday(self.sunset_t, when)
@@ -201,7 +213,9 @@ class SunCalculator:
     def solarnoon(self, when=None):
         """计算正午时间"""
         if when is None:
-            when = datetime.datetime.now(self.local_tz)
+            when = datetime.datetime.now().replace(tzinfo=self.local_tz)
+        elif when.tzinfo is None:
+            when = when.replace(tzinfo=self.local_tz)
         self.__preptime(when)
         self.__calc()
         return self.__timefromdecimalday(self.solarnoon_t, when)
@@ -217,7 +231,10 @@ class SunCalculator:
         s = int(seconds)
         
         try:
-            return datetime.datetime(when.year, when.month, when.day, h, m, s, tzinfo=when.tzinfo)
+            # 确保创建带时区的日期时间对象
+            naive_dt = datetime.datetime(when.year, when.month, when.day, h, m, s)
+            # 添加与原始日期时间相同的时区信息
+            return naive_dt.replace(tzinfo=when.tzinfo)
         except ValueError as e:
             # 如果仍然发生错误，记录并返回一个安全的时间
             print(f"时间转换错误: {e}, 使用安全时间值")
