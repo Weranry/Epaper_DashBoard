@@ -175,17 +175,9 @@ class WeatherData:
 class SunCalculator:
     """计算日出日落时间"""
     
-    def __init__(self, lat, lon):
-        """
-        初始化太阳计算器
-        
-        参数:
-            lat (float): 纬度，北为正
-            lon (float): 经度，东为正
-        """
+    def __init__(self, lat=40.906615, lon=111.133961):
         self.lat = lat
         self.lon = lon
-        
         # 使用pytz处理时区
         self.local_tz = pytz.timezone('Asia/Shanghai')  # 默认使用中国时区
         self.tzoffset = datetime.datetime.now(self.local_tz).utcoffset().total_seconds()/(60*60)
@@ -193,9 +185,7 @@ class SunCalculator:
     def sunrise(self, when=None):
         """计算日出时间"""
         if when is None:
-            when = datetime.datetime.now().replace(tzinfo=self.local_tz)
-        elif when.tzinfo is None:
-            when = when.replace(tzinfo=self.local_tz)
+            when = datetime.datetime.now(self.local_tz)
         self.__preptime(when)
         self.__calc()
         return self.__timefromdecimalday(self.sunrise_t, when)
@@ -203,9 +193,7 @@ class SunCalculator:
     def sunset(self, when=None):
         """计算日落时间"""
         if when is None:
-            when = datetime.datetime.now().replace(tzinfo=self.local_tz)
-        elif when.tzinfo is None:
-            when = when.replace(tzinfo=self.local_tz)
+            when = datetime.datetime.now(self.local_tz)
         self.__preptime(when)
         self.__calc()
         return self.__timefromdecimalday(self.sunset_t, when)
@@ -213,31 +201,36 @@ class SunCalculator:
     def solarnoon(self, when=None):
         """计算正午时间"""
         if when is None:
-            when = datetime.datetime.now().replace(tzinfo=self.local_tz)
-        elif when.tzinfo is None:
-            when = when.replace(tzinfo=self.local_tz)
+            when = datetime.datetime.now(self.local_tz)
         self.__preptime(when)
         self.__calc()
         return self.__timefromdecimalday(self.solarnoon_t, when)
     
     @staticmethod
     def __timefromdecimalday(day, when):
-        # 确保时间值在有效范围内
+        # 检查 day 是否有效
+        if not math.isfinite(day):
+            print(f"无效的 decimal day 值: {day}, 使用安全时间值")
+            return datetime.datetime(when.year, when.month, when.day, 12, 0, 0, tzinfo=when.tzinfo)
+
         hours = 24.0 * day
-        h = int(hours) % 24  # 使用模运算确保小时在0-23范围内
-        minutes = (hours - int(hours)) * 60
+        h = int(hours)
+        minutes = (hours - h) * 60
         m = int(minutes)
         seconds = (minutes - m) * 60
         s = int(seconds)
-        
+
+        # 强制将 h, m, s 限制在有效范围内
+        h = max(0, min(23, h))
+        m = max(0, min(59, m))
+        s = max(0, min(59, s))
+
         try:
-            # 确保创建带时区的日期时间对象
-            naive_dt = datetime.datetime(when.year, when.month, when.day, h, m, s)
-            # 添加与原始日期时间相同的时区信息
-            return naive_dt.replace(tzinfo=when.tzinfo)
+            # 使用强制限制后的值创建 datetime 对象
+            return datetime.datetime(when.year, when.month, when.day, h, m, s, tzinfo=when.tzinfo)
         except ValueError as e:
             # 如果仍然发生错误，记录并返回一个安全的时间
-            print(f"时间转换错误: {e}, 使用安全时间值")
+            print(f"时间转换错误 (h={h}, m={m}, s={s}): {e}, 使用安全时间值")
             return datetime.datetime(when.year, when.month, when.day, 12, 0, 0, tzinfo=when.tzinfo)
     
     def __preptime(self, when):
@@ -270,8 +263,18 @@ class SunCalculator:
         
         eqtime = 4 * deg(vary * sin(2 * rad(Mlong)) - 2 * Eccent * sin(rad(Manom)) + 4 * Eccent * vary * sin(rad(Manom)) * cos(2 * rad(Mlong)) - 0.5 * vary * vary * sin(4 * rad(Mlong)) - 1.25 * Eccent * Eccent * sin(2 * rad(Manom)))
         
-        hourangle = deg(acos(cos(rad(90.833)) / (cos(rad(latitude)) * cos(rad(declination))) - tan(rad(latitude)) * tan(rad(declination))))
-        
+        # 计算 acos 的参数
+        cos_hour_angle_arg = cos(rad(90.833)) / (cos(rad(latitude)) * cos(rad(declination))) - tan(rad(latitude)) * tan(rad(declination))
+
+        # 将参数限制在 [-1.0, 1.0] 范围内以避免 acos 域错误
+        cos_hour_angle_arg = max(-1.0, min(1.0, cos_hour_angle_arg))
+
+        hourangle = deg(acos(cos_hour_angle_arg))
+
         self.solarnoon_t = (720 - 4 * longitude - eqtime + timezone * 60) / 1440
         self.sunrise_t = self.solarnoon_t - hourangle * 4 / 1440
         self.sunset_t = self.solarnoon_t + hourangle * 4 / 1440
+
+        # 确保 sunrise_t 和 sunset_t 在 [0.0, 1.0] 范围内
+        self.sunrise_t = max(0.0, min(1.0, self.sunrise_t))
+        self.sunset_t = max(0.0, min(1.0, self.sunset_t))
