@@ -1,5 +1,5 @@
 from flask import send_file, request
-from functions.date.date_calculator import DateCalculator
+from lib.date.date_calculator import DateCalculator
 from image.date.date_image_creator import DateImageCreator
 from PIL import ImageOps
 

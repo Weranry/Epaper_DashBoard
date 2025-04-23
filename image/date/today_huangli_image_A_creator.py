@@ -4,11 +4,11 @@ import os
 
 class huangliImageACreator:
     def __init__(self):
-        font_path = os.path.join('assets', 'simhei.ttc')
+        font_path = os.path.join('assets', 'simhei.ttf')
         # 进一步增大的大字体，用于显示农历日期、宜、忌
-        self.large_font = ImageFont.truetype(font_path, 28)
+        self.large_font = ImageFont.truetype(font_path, 32)
         # 之前的小字体，用于显示干支日期、阳历日期、宜忌内容
-        self.small_font = ImageFont.truetype(font_path, 18)
+        self.small_font = ImageFont.truetype(font_path, 16)
 
     def wrap_text(self, text, font, max_width, max_lines=2):
         """

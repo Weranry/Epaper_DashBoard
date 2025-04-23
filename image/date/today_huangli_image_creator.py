@@ -6,7 +6,7 @@ import os
 class huangliImageCreator:
     def __init__(self):
         # 构建字体文件路径，字体文件存于 assets 目录下的 simhei.ttc
-        font_path = os.path.join('assets', 'simhei.ttc')
+        font_path = os.path.join('assets', 'simhei.ttf')
         # 创建字号为 16 的字体对象
         self.font = ImageFont.truetype(font_path, 16)
         # 创建字号为 14 的字体对象

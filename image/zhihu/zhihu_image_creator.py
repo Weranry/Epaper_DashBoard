@@ -3,8 +3,8 @@ from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 from bs4 import BeautifulSoup
 import os
-from functions.qrcode.qrcode_generator import generate_qr_code  # 导入二维码生成器
-from functions.date.date_calculator import DateCalculator  # 导入日期计算器
+from lib.qrcode.qrcode_generator import generate_qr_code  # 导入二维码生成器
+from lib.date.date_calculator import DateCalculator  # 导入日期计算器
 
 class ZhihuImageCreator:
     def __init__(self):

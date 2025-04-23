@@ -4,8 +4,8 @@ import os
 
 class ScheduleImageCreator:
     def __init__(self):
-        font_path = os.path.join('assets', 'simhei.ttc')
-        self.title_font = ImageFont.truetype(font_path, 24)
+        font_path = os.path.join('assets', 'simhei.ttf')
+        self.title_font = ImageFont.truetype(font_path, 20)
         self.subtitle_font = ImageFont.truetype(font_path, 20)
         self.content_font = ImageFont.truetype(font_path, 17)
 

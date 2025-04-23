@@ -1,5 +1,5 @@
 from flask import jsonify
-from functions.schedule.schedule_parser import ScheduleParser
+from lib.schedule.schedule_parser import ScheduleParser
 
 class ScheduleJsonAPI:
     def __init__(self, json_file_path):

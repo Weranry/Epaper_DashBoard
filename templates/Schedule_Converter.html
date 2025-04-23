@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>课程表HTML转JSON转换器</title>
+    <style>
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            background-color: #f7f7f7;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+            resize: vertical;
+            font-family: monospace;
+        }
+        .json-output {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            margin: 20px auto;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .info-text {
+            margin-top: 10px;
+            color: #666;
+            font-size: 14px;
+        }
+        .copy-btn {
+            background-color: #27ae60;
+            padding: 8px 15px;
+            margin-top: 10px;
+            display: inline-block;
+        }
+        .copy-btn:hover {
+            background-color: #219652;
+        }
+        .buttons-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .error {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .success {
+            color: #27ae60;
+            font-size: 14px;
+            margin-top: 5px;
+            text-align: center;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>课程表HTML转JSON转换器</h1>
+        
+        <div class="form-group">
+            <label for="semesterStartDate">学期开始日期：</label>
+            <input type="date" id="semesterStartDate" required>
+            <p class="info-text">请选择学期第一周的星期一日期</p>
+        </div>
+        
+        <div class="form-group">
+            <label for="htmlInput">HTML课程表（粘贴表格HTML代码）：</label>
+            <textarea id="htmlInput" placeholder="请粘贴课程表HTML代码..."></textarea>
+        </div>
+        
+        <div class="buttons-container">
+            <button id="convertBtn">转换为JSON</button>
+            <button id="copyBtn" class="copy-btn">复制JSON</button>
+            <button id="clearBtn">清空</button>
+        </div>
+        
+        <div id="message" class="success"></div>
+        
+        <div class="form-group">
+            <label for="jsonOutput">JSON输出：</label>
+            <textarea id="jsonOutput" class="json-output" readonly></textarea>
+        </div>
+        
+        <div class="footer">
+            当前日期：2025-04-01 05:24:44 | 开发者：Weranry
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 设置当前日期为默认值
+            const today = new Date();
+            const dateInput = document.getElementById('semesterStartDate');
+            dateInput.value = formatDate(today);
+            
+            // 绑定按钮事件
+            document.getElementById('convertBtn').addEventListener('click', convertToJson);
+            document.getElementById('copyBtn').addEventListener('click', copyJsonOutput);
+            document.getElementById('clearBtn').addEventListener('click', clearFields);
+            
+            // HTML转JSON的主函数
+            function convertToJson() {
+                try {
+                    const htmlInput = document.getElementById('htmlInput').value;
+                    const semesterStartDate = document.getElementById('semesterStartDate').value;
+                    
+                    if (!semesterStartDate) {
+                        showMessage('请选择学期开始日期', 'error');
+                        return;
+                    }
+                    
+                    if (!htmlInput) {
+                        showMessage('请输入HTML课程表内容', 'error');
+                        return;
+                    }
+                    
+                    // 创建DOM解析器解析HTML
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(htmlInput, 'text/html');
+                    const table = doc.querySelector('table#timetable');
+                    
+                    if (!table) {
+                        showMessage('无法找到课程表，请确保HTML包含正确的表格代码', 'error');
+                        return;
+                    }
+                    
+                    // 开始解析课程表
+                    const courses = parseTimetable(table);
+                    
+                    // 生成最终JSON
+                    const outputJson = {
+                        semesterStartDate: semesterStartDate,
+                        courses: courses
+                    };
+                    
+                    // 使用自定义stringify函数让week数组在同一行
+                    document.getElementById('jsonOutput').value = customStringify(outputJson);
+                    showMessage('转换成功！', 'success');
+                } catch (error) {
+                    console.error('转换出错:', error);
+                    showMessage('转换出错: ' + error.message, 'error');
+                }
+            }
+            
+            // 自定义stringify函数，让week数组在同一行显示
+            function customStringify(obj, indent = 0) {
+                const baseIndent = ' '.repeat(2 * indent);
+                const nextIndent = ' '.repeat(2 * (indent + 1));
+                
+                if (Array.isArray(obj)) {
+                    // 检查是否是week数组（通过判断数组是否只包含数字）
+                    const isWeekArray = obj.length > 0 && obj.every(item => typeof item === 'number');
+                    
+                    if (isWeekArray) {
+                        // 对于week数组，在一行内展示
+                        return '[' + obj.join(', ') + ']';
+                    } else {
+                        // 对于其他数组，正常格式化
+                        const items = obj.map(item => 
+                            nextIndent + customStringify(item, indent + 1)
+                        ).join(',\n');
+                        return '[\n' + items + '\n' + baseIndent + ']';
+                    }
+                } else if (obj !== null && typeof obj === 'object') {
+                    // 处理对象
+                    const entries = Object.entries(obj).map(([key, value]) => 
+                        nextIndent + `"${key}": ` + customStringify(value, indent + 1)
+                    ).join(',\n');
+                    return '{\n' + entries + '\n' + baseIndent + '}';
+                } else {
+                    // 处理基本类型
+                    return JSON.stringify(obj);
+                }
+            }
+            
+            // 原始课节映射到合并后的节次
+            function mapLessonToPeriod(lesson) {
+                if (lesson <= 2) return 1; // 第1-2节 → 第1大节
+                if (lesson <= 4) return 2; // 第3-4节 → 第2大节
+                if (lesson <= 6) return 3; // 第5-6节 → 第3大节
+                if (lesson <= 8) return 4; // 第7-8节 → 第4大节
+                if (lesson <= 10) return 5; // 第9-10节 → 第5大节
+                return 6; // 第11节及以后 → 第6大节
+            }
+            
+            // 解析课程表函数
+            function parseTimetable(table) {
+                // 存储所有课程的集合，用于去重
+                const courseMap = new Map();
+                
+                // 临时存储同一课程在相同时间段的课程安排
+                const tempClassroomMap = new Map();
+                
+                // 获取所有单元格（跳过表头行）
+                const cells = table.querySelectorAll('td[id]');
+                
+                // 遍历每个单元格
+                cells.forEach(cell => {
+                    // 跳过空白单元格
+                    if (cell.innerHTML.trim() === '&nbsp;' || cell.textContent.trim() === '') {
+                        return;
+                    }
+                    
+                    // 解析单元格ID获取星期几和第几节课
+                    const cellId = cell.id;
+                    const [dayOfWeek, lessonOriginal] = cellId.split('-').map(Number);
+                    
+                    // 将原始课节映射到合并后的大节
+                    const period = mapLessonToPeriod(lessonOriginal);
+                    
+                    // 解析单元格内的课程信息 - 可能包含多个不同的课程
+                    const courseInfos = parseCellContent(cell.innerHTML);
+                    
+                    // 处理每个课程信息
+                    courseInfos.forEach(info => {
+                        const { courseName, teacher, room, weeks } = info;
+                        
+                        // 创建课程标识符以便合并同一课程的不同时段
+                        const courseKey = `${courseName}_${teacher}`;
+                        
+                        // 创建时间段标识符用于合并连续的课节
+                        // 针对特定课程、星期、大节和教室的组合
+                        const timeSlotKey = `${courseKey}_${dayOfWeek}_${period}_${room}_${weeks.join('_')}`;
+                        
+                        // 检查是否已经存在相同课程、相同时间段的安排
+                        if (tempClassroomMap.has(timeSlotKey)) {
+                            // 已存在相同课程的时间段，直接跳过（因为我们已经将连续课节合并了）
+                            return;
+                        }
+                        
+                        // 标记该时间段已处理
+                        tempClassroomMap.set(timeSlotKey, true);
+                        
+                        // 如果课程不存在，创建新课程
+                        if (!courseMap.has(courseKey)) {
+                            courseMap.set(courseKey, {
+                                courseName,
+                                teacher,
+                                classroom: []
+                            });
+                        }
+                        
+                        // 添加教室信息
+                        courseMap.get(courseKey).classroom.push({
+                            week: weeks,
+                            dayOfWeek,
+                            lesson: period,  // 使用合并后的大节
+                            room
+                        });
+                    });
+                });
+                
+                // 将Map转为数组返回
+                return Array.from(courseMap.values());
+            }
+            
+            // 解析单元格内容
+            function parseCellContent(cellHtml) {
+                // 替换HTML实体和去除额外的空白
+                const content = cellHtml.replace(/&nbsp;/g, ' ').trim();
+                
+                // 如果是空单元格，返回空数组
+                if (content === '' || content === ' ') {
+                    return [];
+                }
+                
+                // 拆分HTML查找所有课程，基于 <br>&lt;&lt; 模式分隔
+                // 但是处理同一个单元格中的多个不同课程
+                const htmlParts = [];
+                let currentPart = '';
+                let startIndex = 0;
+                
+                // 找到第一个课程开始标记
+                const firstCourseStart = content.indexOf('&lt;&lt;');
+                if (firstCourseStart >= 0) {
+                    currentPart = content.substring(0, firstCourseStart);
+                    startIndex = firstCourseStart;
+                }
+                
+                // 查找所有课程分隔符
+                while (startIndex < content.length) {
+                    // 当前课程的起始位置
+                    const courseStart = content.indexOf('&lt;&lt;', startIndex);
+                    if (courseStart === -1) break;
+                    
+                    // 查找下一个课程的起始位置
+                    const nextCourseStart = content.indexOf('&lt;&lt;', courseStart + 8); // 8 是 '&lt;&lt;' 的长度
+                    
+                    // 如果没有下一个课程，或者下一个课程前面有<br>标记
+                    if (nextCourseStart === -1) {
+                        // 添加最后一个课程
+                        htmlParts.push(content.substring(courseStart));
+                        break;
+                    } else {
+                        // 查找在课程之间的<br>标记
+                        const brIndex = content.lastIndexOf('<br>', nextCourseStart);
+                        
+                        // 如果<br>在当前课程开始之后且在下一个课程开始之前，这是一个分隔点
+                        if (brIndex > courseStart && brIndex < nextCourseStart) {
+                            htmlParts.push(content.substring(courseStart, brIndex));
+                            startIndex = brIndex + 4; // 跳过 '<br>'
+                        } else {
+                            // 没有找到合适的分隔点，这可能是一个错误
+                            // 直接添加当前课程直到下一个课程开始前
+                            htmlParts.push(content.substring(courseStart, nextCourseStart));
+                            startIndex = nextCourseStart;
+                        }
+                    }
+                }
+                
+                // 现在处理每个HTML部分以提取课程信息
+                const courseInfos = [];
+                htmlParts.forEach(part => {
+                    // 提取课程名称、教师、教室和周次
+                    const courseInfo = extractCourseInfo(part);
+                    if (courseInfo) {
+                        courseInfos.push(courseInfo);
+                    }
+                });
+                
+                // 如果上面的方法未能正确分割课程，尝试另一种方式
+                if (courseInfos.length === 0 && content.includes('&lt;&lt;')) {
+                    // 使用正则表达式匹配所有课程
+                    const courseRegex = /&lt;&lt;(.*?)&gt;&gt;.*?(?=<br>&lt;&lt;|$)/gs;
+                    let match;
+                    while ((match = courseRegex.exec(content)) !== null) {
+                        const coursePart = match[0];
+                        const courseInfo = extractCourseInfo(coursePart);
+                        if (courseInfo) {
+                            courseInfos.push(courseInfo);
+                        }
+                    }
+                }
+                
+                return courseInfos;
+            }
+            
+            // 提取课程信息
+            function extractCourseInfo(courseText) {
+                try {
+                    // 使用正则表达式提取课程名称
+                    const courseNameMatch = courseText.match(/&lt;&lt;(.*?)&gt;&gt;/);
+                    if (!courseNameMatch) return null;
+                    
+                    const courseName = courseNameMatch[1];
+                    
+                    // 分割行获取其他信息
+                    const lines = courseText.split('<br>');
+                    
+                    // 获取教室信息（通常在第二行）
+                    const room = lines.length > 1 ? lines[1].trim() : '';
+                    
+                    // 获取教师信息（通常在第三行）
+                    const teacher = lines.length > 2 ? lines[2].trim() : '';
+                    
+                    // 获取周次信息（通常在第四行）
+                    let weekInfo = lines.length > 3 ? lines[3].trim() : '';
+                    const weeks = parseWeeks(weekInfo);
+                    
+                    return {
+                        courseName,
+                        teacher,
+                        room,
+                        weeks
+                    };
+                } catch (error) {
+                    console.error('提取课程信息出错:', error, courseText);
+                    return null;
+                }
+            }
+            
+            // 解析周次信息
+            function parseWeeks(weekInfo) {
+                // 处理各种格式的周次信息
+                const weeks = [];
+                
+                // 如果只有一个数字，表示单周
+                if (/^\d+$/.test(weekInfo)) {
+                    weeks.push(parseInt(weekInfo));
+                    return weeks;
+                }
+                
+                // 处理范围格式，如"1-16"
+                const rangeMatch = weekInfo.match(/(\d+)-(\d+)(?:单|双)?/);
+                if (rangeMatch) {
+                    const start = parseInt(rangeMatch[1]);
+                    const end = parseInt(rangeMatch[2]);
+                    
+                    // 检查是否有单周或双周限定
+                    if (weekInfo.includes('单')) {
+                        for (let i = start; i <= end; i++) {
+                            if (i % 2 === 1) weeks.push(i);
+                        }
+                    } else if (weekInfo.includes('双')) {
+                        for (let i = start; i <= end; i++) {
+                            if (i % 2 === 0) weeks.push(i);
+                        }
+                    } else {
+                        for (let i = start; i <= end; i++) {
+                            weeks.push(i);
+                        }
+                    }
+                    return weeks;
+                }
+                
+                // 处理逗号分隔的多个周次，如"1,3,5,7"
+                if (weekInfo.includes(',')) {
+                    const parts = weekInfo.split(',');
+                    parts.forEach(part => {
+                        if (/^\d+$/.test(part.trim())) {
+                            weeks.push(parseInt(part.trim()));
+                        }
+                    });
+                    return weeks;
+                }
+                
+                // 默认返回空数组
+                return weeks;
+            }
+            
+            // 复制JSON输出
+            function copyJsonOutput() {
+                const jsonOutput = document.getElementById('jsonOutput');
+                jsonOutput.select();
+                document.execCommand('copy');
+                showMessage('已复制到剪贴板！', 'success');
+            }
+            
+            // 清空所有字段
+            function clearFields() {
+                document.getElementById('htmlInput').value = '';
+                document.getElementById('jsonOutput').value = '';
+                document.getElementById('message').textContent = '';
+            }
+            
+            // 显示消息
+            function showMessage(msg, type = 'success') {
+                const msgElement = document.getElementById('message');
+                msgElement.textContent = msg;
+                msgElement.className = type;
+                
+                // 5秒后清除消息
+                setTimeout(() => {
+                    msgElement.textContent = '';
+                }, 5000);
+            }
+            
+            // 格式化日期为YYYY-MM-DD
+            function formatDate(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+        });
+    </script>
+</body>
+</html>

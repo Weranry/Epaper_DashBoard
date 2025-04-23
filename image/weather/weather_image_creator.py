@@ -4,7 +4,7 @@ import os
 
 class WeatherImageCreator:
     def __init__(self):
-        self.font_path = os.path.join('assets', 'simhei.ttc')
+        self.font_path = os.path.join('assets', 'simhei.ttf')
         icon_font_path = os.path.join('assets', 'weather-icon.ttf')
         self.font = ImageFont.truetype(self.font_path, 18)
         self.icon_font = ImageFont.truetype(icon_font_path, 80)

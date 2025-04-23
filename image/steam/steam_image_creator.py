@@ -5,7 +5,7 @@ import os
 
 class SteamImageCreator:
     def __init__(self):
-        font_path = os.path.join('assets','simhei.ttc')
+        font_path = os.path.join('assets','simhei.ttf')
         self.title_font = ImageFont.truetype(font_path, 18)
         self.content_font = ImageFont.truetype(font_path, 18)
 

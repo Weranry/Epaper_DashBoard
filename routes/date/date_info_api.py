@@ -1,5 +1,5 @@
 from flask import jsonify
-from functions.date.date_calculator import DateCalculator
+from lib.date.date_calculator import DateCalculator
 
 class DateInfoAPI:
     def __init__(self):

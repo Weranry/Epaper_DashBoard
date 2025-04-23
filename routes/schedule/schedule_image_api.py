@@ -1,5 +1,5 @@
 from flask import send_file, request
-from functions.schedule.schedule_parser import ScheduleParser
+from lib.schedule.schedule_parser import ScheduleParser
 from image.schedule.schedule_image_creator import ScheduleImageCreator
 from PIL import ImageOps
 

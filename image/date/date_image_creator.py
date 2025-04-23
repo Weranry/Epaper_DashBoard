@@ -1,11 +1,11 @@
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 import os
-from functions.date.date_calculator import DateCalculator  # 只导入 DateCalculator
+from lib.date.date_calculator import DateCalculator  # 只导入 DateCalculator
 
 class DateImageCreator:
     def __init__(self):
-        font_path = os.path.join('assets', 'simhei.ttc')
+        font_path = os.path.join('assets', 'simhei.ttf')
         self.title_font = ImageFont.truetype(font_path, 18)
         self.content_font = ImageFont.truetype(font_path, 18)
         self.large_font = ImageFont.truetype(font_path, 120)

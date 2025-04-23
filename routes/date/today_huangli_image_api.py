@@ -1,5 +1,5 @@
 from flask import send_file, request
-from functions.date.today_huangli import todayhuangli
+from lib.date.today_huangli import todayhuangli
 from image.date.today_huangli_image_creator import huangliImageCreator
 from PIL import ImageOps
 
