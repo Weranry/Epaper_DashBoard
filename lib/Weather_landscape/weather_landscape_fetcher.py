@@ -4,6 +4,7 @@ import requests
 import pytz
 from math import cos, sin, acos, asin, tan
 from math import degrees as deg, radians as rad
+import math  # Import the math module
 
 class WeatherData:
     """整合获取天气数据的功能"""
@@ -137,25 +138,29 @@ class WeatherData:
         """获取指定时间内的温度范围"""
         if len(self.weather_data) == 0:
             return None
-            
+
+        # Ensure max_time is offset-aware
+        if max_time.tzinfo is None or max_time.tzinfo.utcoffset(max_time) is None:
+            max_time = self.local_tz.localize(max_time)
+
         tmax = -999
         tmin = 999
         is_first = True
-        
+
         for weather in self.weather_data:
             if is_first:
                 is_first = False
                 continue
-                
+
             if weather['time'] > max_time:
                 break
-                
+
             if weather['temp'] > tmax:
                 tmax = weather['temp']
-                
+
             if weather['temp'] < tmin:
                 tmin = weather['temp']
-                
+
         return (tmin, tmax)
     
     def get_current(self):
@@ -166,6 +171,10 @@ class WeatherData:
     
     def get_forecast_at_time(self, time):
         """获取指定时间的天气预报"""
+        # Ensure time is offset-aware
+        if time.tzinfo is None or time.tzinfo.utcoffset(time) is None:
+            time = self.local_tz.localize(time)
+
         for weather in self.weather_data:
             if weather['time'] > time:
                 return weather
