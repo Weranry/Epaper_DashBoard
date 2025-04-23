@@ -26,10 +26,12 @@ class WeatherLandscapeAPI:
             
             # 使用相同的经纬度初始化SunCalculator
             sun_calculator = SunCalculator(lat, lon)
+            # 将sun_calculator添加到weather_data对象中
+            weather_data.sun_calculator = sun_calculator
             
-            # 生成图像，传递SunCalculator对象
+            # 生成图像，只传递weather_data对象
             drawer = WeatherDrawer()
-            img = drawer.draw_weather(weather_data, sun_calculator)
+            img = drawer.draw_weather(weather_data)
             
             # 转换为字节流并发送
             img_byte_arr = io.BytesIO()
