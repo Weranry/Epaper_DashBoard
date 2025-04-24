@@ -215,11 +215,11 @@ class SunCalculator:
     @staticmethod
     def __timefromdecimalday(day, when):
         hours = 24.0 * day
-        h = int(hours)
+        h = int(hours) % 24  # 确保小时在 0 到 23 范围内
         minutes = (hours - h) * 60
-        m = int(minutes)
+        m = int(minutes) % 60  # 确保分钟在 0 到 59 范围内
         seconds = (minutes - m) * 60
-        s = int(seconds)
+        s = int(seconds) % 60  # 确保秒在 0 到 59 范围内
         return datetime.datetime(when.year, when.month, when.day, h, m, s)
     
     def __preptime(self, when):
