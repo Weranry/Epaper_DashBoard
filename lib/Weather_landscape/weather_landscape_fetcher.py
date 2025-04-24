@@ -128,10 +128,10 @@ class WeatherData:
         return True
     
     def ensure_localized(self, dt):
-        print("DEBUG: dt =", dt, "hour =", getattr(dt, 'hour', None), "tzinfo =", dt.tzinfo)
+        tz = pytz.timezone('Asia/Shanghai')
         if dt.tzinfo is None or dt.tzinfo.utcoffset(dt) is None:
-            return pytz.timezone('Asia/Shanghai').localize(dt)
-        return dt
+            return tz.localize(dt)
+        return dt.astimezone(tz)
     
     def get_temp_range(self, max_time):
         """获取指定时间内的温度范围（时区安全）"""
