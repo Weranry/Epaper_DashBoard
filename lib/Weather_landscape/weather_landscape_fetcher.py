@@ -5,6 +5,9 @@ from math import cos, sin, acos, asin, tan
 from math import degrees as deg, radians as rad
 import pytz  # Import pytz
 
+# Define GMT+8 timezone
+GMT8 = pytz.timezone('Asia/Shanghai')
+
 class WeatherData:
     """整合获取天气数据的功能"""
     
@@ -29,7 +32,7 @@ class WeatherData:
     # API URL
     OWMURL = "http://api.openweathermap.org/data/2.5/"
     
-    def __init__(self, api_key, lat, lon, units_mode=0, pressure_min=980, pressure_max=1030):
+    def __init__(self, api_key, lat, lon, units_mode=0, pressure_min=980, pressure_max=1030, timezone_str='Asia/Shanghai'):
         self.api_key = api_key
         self.lat = lat
         self.lon = lon
@@ -37,7 +40,11 @@ class WeatherData:
         self.pressure_min = pressure_min
         self.pressure_max = pressure_max
         self.weather_data = []
-        self.tzoffset = (datetime.datetime.now() - datetime.datetime.utcnow()).total_seconds()/(60*60)
+        try:
+            self.timezone = pytz.timezone(timezone_str)
+        except pytz.UnknownTimeZoneError:
+            print(f"Unknown timezone '{timezone_str}', defaulting to GMT+8.")
+            self.timezone = GMT8 # Default to GMT+8 if provided timezone is invalid
         
         # 构建API请求URL
         self.reqstr = f"lat={self.lat}&lon={self.lon}&mode=json&APPID={self.api_key}"
@@ -79,8 +86,12 @@ class WeatherData:
         """处理从API获取的天气数据"""
         is_celsius = self.units_mode != self.TEMP_UNITS_FAHRENHEIT
         
+        # Convert UTC timestamp to the specified timezone
+        utc_dt = datetime.datetime.fromtimestamp(int(data['dt']), tz=pytz.utc)
+        local_dt = utc_dt.astimezone(self.timezone)
+
         weather_info = {
-            'time': datetime.datetime.fromtimestamp(int(data['dt'])),
+            'time': local_dt, # Use timezone-aware datetime
             'id': int(data['weather'][0]['id']),
             'clouds': int(data['clouds'].get('all', 0)) if 'clouds' in data else 0,
             'rain': 0.0,
@@ -177,15 +188,19 @@ class WeatherData:
 class SunCalculator:
     """计算日出日落时间"""
     
-    def __init__(self, lat, lon):
+    def __init__(self, lat, lon, timezone_str='Asia/Shanghai'):
         self.lat = lat
         self.lon = lon
-        self.tzoffset = (datetime.datetime.now() - datetime.datetime.utcnow()).total_seconds()/(60*60)
-    
+        try:
+            self.timezone = pytz.timezone(timezone_str)
+        except pytz.UnknownTimeZoneError:
+            print(f"Unknown timezone '{timezone_str}', defaulting to GMT+8.")
+            self.timezone = GMT8 # Default to GMT+8
+
     def sunrise(self, when=None):
         """计算日出时间"""
         if when is None:
-            when = datetime.datetime.now()
+            when = datetime.datetime.now(self.timezone) # Use timezone-aware now
         self.__preptime(when)
         self.__calc()
         return self.__timefromdecimalday(self.sunrise_t, when)
@@ -193,7 +208,7 @@ class SunCalculator:
     def sunset(self, when=None):
         """计算日落时间"""
         if when is None:
-            when = datetime.datetime.now()
+            when = datetime.datetime.now(self.timezone) # Use timezone-aware now
         self.__preptime(when)
         self.__calc()
         return self.__timefromdecimalday(self.sunset_t, when)
@@ -201,13 +216,12 @@ class SunCalculator:
     def solarnoon(self, when=None):
         """计算正午时间"""
         if when is None:
-            when = datetime.datetime.now()
+            when = datetime.datetime.now(self.timezone) # Use timezone-aware now
         self.__preptime(when)
         self.__calc()
         return self.__timefromdecimalday(self.solarnoon_t, when)
     
-    @staticmethod
-    def __timefromdecimalday(day, when):
+    def __timefromdecimalday(self, day, when):
         hours = 24.0 * day
         h = int(hours)
         minutes = (hours - h) * 60
@@ -221,7 +235,13 @@ class SunCalculator:
             h -= 24
             day_offset += 1
 
-        base_date = datetime.date(when.year, when.month, when.day)
+        # Use the date part of the original 'when' datetime, but ensure it's naive for timedelta calculation
+        if when.tzinfo is not None:
+             base_date = when.astimezone(self.timezone).date()
+        else:
+             # If 'when' is naive, assume it's in the target timezone already for date calculation
+             base_date = when.date()
+
         try:
             adjusted_date = base_date + datetime.timedelta(days=day_offset)
         except OverflowError:
@@ -231,27 +251,43 @@ class SunCalculator:
         s = max(0, min(59, int(round(seconds))))
 
         try:
-            return datetime.datetime(adjusted_date.year, adjusted_date.month, adjusted_date.day, h, m, s)
+            # Create a naive datetime first
+            naive_dt = datetime.datetime(adjusted_date.year, adjusted_date.month, adjusted_date.day, h, m, s)
+            # Localize the naive datetime to the target timezone
+            localized_dt = self.timezone.localize(naive_dt)
+            return localized_dt
         except ValueError as e:
             raise ValueError(f"Could not construct valid datetime. adjusted_date={adjusted_date}, h={h}, m={m}, s={s}. Original error: {e}") from e
     
     def __preptime(self, when):
-        # 确保传入的时间是 offset-naive 的 UTC 时间
-        if when.tzinfo is not None and when.tzinfo.utcoffset(when) is not None:
-            when = when.astimezone(pytz.utc).replace(tzinfo=None)
+        # Ensure 'when' is timezone-aware and in the target timezone
+        if when.tzinfo is None:
+            # If naive, assume it's in the target timezone and make it aware
+            when = self.timezone.localize(when)
+        else:
+            # If aware but different timezone, convert it
+            when = when.astimezone(self.timezone)
 
-        self.day = when.toordinal() - (734124 - 40529)
-        t = when.time()
+        # Calculate offset in hours for the specific datetime 'when'
+        tz_offset_seconds = when.utcoffset().total_seconds()
+        self.timezone_offset_hours = tz_offset_seconds / 3600.0 # Use the specific offset for 'when'
+
+        # Convert 'when' to UTC for calculations that might assume UTC base
+        when_utc = when.astimezone(pytz.utc)
+
+        # Original day/time calculation based on UTC representation
+        self.day = when_utc.toordinal() - (734124 - 40529)
+        t = when_utc.time()
         self.time = (t.hour + t.minute/60.0 + t.second/3600.0) / 24.0
-        self.timezone = self.tzoffset
     
     def __calc(self):
-        timezone = self.timezone  # in hours, east is positive
+        # Use the specific timezone offset calculated in __preptime
+        timezone = self.timezone_offset_hours # in hours, east is positive
         longitude = self.lon      # in decimal degrees, east is positive
         latitude = self.lat       # in decimal degrees, north is positive
         
-        time = self.time  # percentage past midnight, i.e. noon is 0.5
-        day = self.day    # daynumber 1=1/1/1900
+        time = self.time  # percentage past midnight (UTC), i.e. noon is 0.5
+        day = self.day    # daynumber 1=1/1/1900 (based on UTC)
         
         Jday = day + 2415018.5 + time - timezone / 24  # Julian day
         Jcent = (Jday - 2451545) / 36525    # Julian century
