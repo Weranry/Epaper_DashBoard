@@ -137,6 +137,7 @@ class WeatherData:
         """获取指定时间内的温度范围（时区安全）"""
         if len(self.weather_data) == 0:
             return None
+        print("DEBUG: max_time =", max_time, "tzinfo =", getattr(max_time, 'tzinfo', None))
         max_time = self.ensure_localized(max_time)
         tmax = -999
         tmin = 999
@@ -146,6 +147,7 @@ class WeatherData:
                 is_first = False
                 continue
             weather_time = self.ensure_localized(weather['time'])
+            print("DEBUG: weather_time =", weather['time'], "tzinfo =", getattr(weather['time'], 'tzinfo', None))
             if weather_time > max_time:
                 break
             if weather['temp'] > tmax:
