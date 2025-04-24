@@ -74,8 +74,11 @@ class WeatherData:
         """处理从API获取的天气数据"""
         is_celsius = self.units_mode != self.TEMP_UNITS_FAHRENHEIT
         
+        # 使用 pytz 确保时间是 timezone-aware
+        weather_time = datetime.datetime.fromtimestamp(int(data['dt']), pytz.UTC)
+        
         weather_info = {
-            'time': datetime.datetime.fromtimestamp(int(data['dt']), pytz.UTC),
+            'time': weather_time,
             'id': int(data['weather'][0]['id']),
             'clouds': int(data['clouds'].get('all', 0)) if 'clouds' in data else 0,
             'rain': 0.0,
@@ -230,11 +233,16 @@ class SunCalculator:
         
         # 创建新的datetime对象，确保所有时间组件都在合法范围内
         try:
-            return datetime.datetime(when.year, when.month, when.day, h, m, s)
+            dt = datetime.datetime(when.year, when.month, when.day, h, m, s)
+            # 为结果添加时区信息
+            tz = pytz.timezone('Asia/Shanghai')
+            return tz.localize(dt)
         except ValueError:
             # 处理可能的日期溢出情况
             next_day = when + datetime.timedelta(days=1)
-            return datetime.datetime(next_day.year, next_day.month, next_day.day, h, m, s)
+            dt = datetime.datetime(next_day.year, next_day.month, next_day.day, h, m, s)
+            tz = pytz.timezone('Asia/Shanghai')
+            return tz.localize(dt)
     
     def __preptime(self, when):
         self.day = when.toordinal() - (734124 - 40529)
