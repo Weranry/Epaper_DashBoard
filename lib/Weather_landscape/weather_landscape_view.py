@@ -46,32 +46,51 @@ class Sprites:
         if (xpos < 0) or (ypos < 0):
             return 0
         
-        imagefilename = "%s_%02i%s" % (name, index, self.ext)
-        imagepath = os.path.join(self.dir, imagefilename)
-        img = Image.open(imagepath)
-        
-        if ismirror:
-            img = ImageOps.mirror(img)
+        try:
+            imagefilename = "%s_%02i%s" % (name, index, self.ext)
+            imagepath = os.path.join(self.dir, imagefilename)
             
-        w, h = img.size
-        pix = img.load()
-        ypos -= h
-        
-        for x in range(w):
-            for y in range(h):
+            # 检查文件是否存在
+            if not os.path.exists(imagepath):
+                print(f"Warning: Sprite file not found: {imagepath}")
+                return 0
+                
+            img = Image.open(imagepath)
+            
+            if ismirror:
+                img = ImageOps.mirror(img)
+                
+            w, h = img.size
+            pix = img.load()
+            ypos -= h
+            
+            # 确保x和y的范围在有效区域内
+            for x in range(w):
                 if (xpos + x >= self.w) or (xpos + x < 0):
                     continue
-                if (ypos + y >= self.h) or (ypos + y < 0):
-                    continue
                     
-                if pix[x, y] == self.BLACK:
-                    self.Dot(xpos + x, ypos + y, self.Black)
-                elif pix[x, y] == self.WHITE:
-                    self.Dot(xpos + x, ypos + y, self.White)
-                elif pix[x, y] == self.RED:
-                    self.Dot(xpos + x, ypos + y, self.Red)
-        
-        return w
+                for y in range(h):
+                    if (ypos + y >= self.h) or (ypos + y < 0):
+                        continue
+                    
+                    try:
+                        pixel_value = pix[x, y]
+                        if pixel_value == self.BLACK:
+                            self.Dot(xpos + x, ypos + y, self.Black)
+                        elif pixel_value == self.WHITE:
+                            self.Dot(xpos + x, ypos + y, self.White)
+                        elif pixel_value == self.RED:
+                            self.Dot(xpos + x, ypos + y, self.Red)
+                    except IndexError:
+                        # 处理像素访问越界
+                        print(f"Warning: Index error when accessing pixel at ({x}, {y}) in sprite {imagefilename}")
+                        continue
+            
+            return w
+            
+        except Exception as e:
+            print(f"Error drawing sprite {name}_{index}{self.ext}: {str(e)}")
+            return 0
     
     # 数字精灵常量
     DIGITPLAS = 10
