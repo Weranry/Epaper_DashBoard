@@ -337,6 +337,23 @@ class WeatherDrawer:
     DRAWOFFSET = 235  # 修改为在图片下方绘制
     IMAGE_WIDTH = 400
     IMAGE_HEIGHT = 300
+    
+    # 使用绝对路径并确保sprite文件夹存在
+    @staticmethod
+    def ensure_sprites_dir():
+        sprites_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sprite")
+        # 验证目录是否存在
+        if not os.path.exists(sprites_dir):
+            print(f"警告: 精灵图片目录不存在: {sprites_dir}")
+            # 尝试查找其他可能的路径
+            parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            alt_sprites_dir = os.path.join(parent_dir, "lib", "Weather_landscape", "sprite")
+            if os.path.exists(alt_sprites_dir):
+                print(f"使用替代路径: {alt_sprites_dir}")
+                return alt_sprites_dir
+        return sprites_dir
+    
+    # 初始化精灵目录
     SPRITES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sprite")  # 使用绝对路径
     
     @staticmethod
@@ -398,8 +415,11 @@ class WeatherDrawer:
             
         img.putpalette(palette)
         
+        # 使用确保有效的精灵路径的方法
+        sprites_dir = self.ensure_sprites_dir()
+        
         # 初始化精灵
-        sprite = Sprites(self.SPRITES_DIR, img)
+        sprite = Sprites(sprites_dir, img)
         
         self.pic_height = self.IMAGE_HEIGHT
         self.pic_width = self.IMAGE_WIDTH

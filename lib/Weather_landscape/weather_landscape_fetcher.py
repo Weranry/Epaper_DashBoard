@@ -12,6 +12,7 @@ try:
 except pytz.UnknownTimeZoneError:
     print(f"Default timezone '{DEFAULT_TIMEZONE_STR}' unknown, falling back to UTC.")
     DEFAULT_TIMEZONE = pytz.utc # Fallback to UTC if default is invalid
+    DEFAULT_TIMEZONE_STR = 'UTC' # Update the string to match the actual timezone
 
 class WeatherData:
     """整合获取天气数据的功能"""
@@ -38,9 +39,11 @@ class WeatherData:
         self.weather_data = []
         try:
             self.timezone = pytz.timezone(timezone_str)
+            self.timezone_str = timezone_str
         except pytz.UnknownTimeZoneError:
             print(f"Unknown timezone '{timezone_str}', defaulting to {DEFAULT_TIMEZONE_STR}.")
             self.timezone = DEFAULT_TIMEZONE # Use the validated default timezone
+            self.timezone_str = DEFAULT_TIMEZONE_STR
         self.reqstr = f"lat={self.lat}&lon={self.lon}&mode=json&APPID={self.api_key}"
         self.url_forecast = f"{self.OWMURL}forecast?{self.reqstr}"
         self.url_current = f"{self.OWMURL}weather?{self.reqstr}"
