@@ -37,7 +37,10 @@ class WeatherData:
         self.pressure_min = pressure_min
         self.pressure_max = pressure_max
         self.weather_data = []
-        self.tzoffset = (datetime.datetime.now() - datetime.datetime.utcnow()).total_seconds()/(60*60)
+        # 使用pytz安全地计算时区偏移
+        local_now = datetime.datetime.now(pytz.timezone('Asia/Shanghai'))
+        utc_now = datetime.datetime.now(pytz.UTC)
+        self.tzoffset = (local_now.utcoffset().total_seconds()) / (60*60)
         
         # 构建API请求URL
         self.reqstr = f"lat={self.lat}&lon={self.lon}&mode=json&APPID={self.api_key}"
@@ -186,7 +189,10 @@ class SunCalculator:
     def __init__(self, lat, lon):
         self.lat = lat
         self.lon = lon
-        self.tzoffset = (datetime.datetime.now() - datetime.datetime.utcnow()).total_seconds()/(60*60)
+        # 使用pytz安全地计算时区偏移
+        local_now = datetime.datetime.now(pytz.timezone('Asia/Shanghai'))
+        utc_now = datetime.datetime.now(pytz.UTC)
+        self.tzoffset = (local_now.utcoffset().total_seconds()) / (60*60)
     
     def sunrise(self, when=None):
         """计算日出时间"""
@@ -214,13 +220,21 @@ class SunCalculator:
     
     @staticmethod
     def __timefromdecimalday(day, when):
+        """将小数表示的一天转换为datetime对象，确保小时值在0-23之间"""
         hours = 24.0 * day
         h = int(hours) % 24  # 确保小时在 0 到 23 范围内
         minutes = (hours - h) * 60
         m = int(minutes) % 60  # 确保分钟在 0 到 59 范围内
         seconds = (minutes - m) * 60
         s = int(seconds) % 60  # 确保秒在 0 到 59 范围内
-        return datetime.datetime(when.year, when.month, when.day, h, m, s)
+        
+        # 创建新的datetime对象，确保所有时间组件都在合法范围内
+        try:
+            return datetime.datetime(when.year, when.month, when.day, h, m, s)
+        except ValueError:
+            # 处理可能的日期溢出情况
+            next_day = when + datetime.timedelta(days=1)
+            return datetime.datetime(next_day.year, next_day.month, next_day.day, h, m, s)
     
     def __preptime(self, when):
         self.day = when.toordinal() - (734124 - 40529)
