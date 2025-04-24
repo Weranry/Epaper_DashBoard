@@ -72,7 +72,7 @@ class WeatherData:
         is_celsius = self.units_mode != self.TEMP_UNITS_FAHRENHEIT
         
         weather_info = {
-            'time': datetime.datetime.fromtimestamp(int(data['dt'])),
+            'time': datetime.datetime.fromtimestamp(int(data['dt']), pytz.UTC),
             'id': int(data['weather'][0]['id']),
             'clouds': int(data['clouds'].get('all', 0)) if 'clouds' in data else 0,
             'rain': 0.0,
@@ -128,6 +128,7 @@ class WeatherData:
         return True
     
     def ensure_localized(self, dt):
+        print("DEBUG: dt =", dt, "hour =", getattr(dt, 'hour', None), "tzinfo =", dt.tzinfo)
         if dt.tzinfo is None or dt.tzinfo.utcoffset(dt) is None:
             return pytz.timezone('Asia/Shanghai').localize(dt)
         return dt
