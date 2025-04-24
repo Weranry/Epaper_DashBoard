@@ -151,16 +151,26 @@ class WeatherData:
         if len(self.weather_data) == 0:
             return None
             
+        # Ensure max_time is timezone-aware and matches self.timezone
+        if max_time.tzinfo is None:
+            # Assume naive max_time is in the instance's timezone
+            aware_max_time = self.timezone.localize(max_time)
+        else:
+            # Convert max_time to the instance's timezone if different
+            aware_max_time = max_time.astimezone(self.timezone)
+            
         tmax = -999
         tmin = 999
         is_first = True
         
         for weather in self.weather_data:
+            # weather['time'] is already aware and in self.timezone
             if is_first:
                 is_first = False
                 continue
                 
-            if weather['time'] > max_time:
+            # Compare aware datetimes
+            if weather['time'] > aware_max_time:
                 break
                 
             if weather['temp'] > tmax:
@@ -169,6 +179,12 @@ class WeatherData:
             if weather['temp'] < tmin:
                 tmin = weather['temp']
                 
+        # Return None if no data points were within the time range (excluding the first)
+        if tmax == -999 and tmin == 999 and len(self.weather_data) > 1:
+             return None
+        elif tmax == -999 and tmin == 999: # Handle case with only current weather
+             return None
+
         return (tmin, tmax)
     
     def get_current(self):
@@ -179,9 +195,22 @@ class WeatherData:
     
     def get_forecast_at_time(self, time):
         """获取指定时间的天气预报"""
+        # Ensure time is timezone-aware and matches self.timezone
+        if time.tzinfo is None:
+            # Assume naive time is in the instance's timezone
+            aware_time = self.timezone.localize(time)
+        else:
+            # Convert time to the instance's timezone if different
+            aware_time = time.astimezone(self.timezone)
+            
         for weather in self.weather_data:
-            if weather['time'] > time:
+            # weather['time'] is already aware and in self.timezone
+            # Compare aware datetimes
+            if weather['time'] > aware_time:
                 return weather
+        # If no forecast is later than the requested time, return the last available one?
+        # Or return None if strictly looking for forecast *after* the time.
+        # Current behavior: returns None if loop completes.
         return None
 
 
