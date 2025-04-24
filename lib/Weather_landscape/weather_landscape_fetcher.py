@@ -161,7 +161,7 @@ class WeatherData:
                 tmin = weather['temp']
 
         return (tmin, tmax)
-    
+
     def get_current(self):
         """获取当前天气数据"""
         if len(self.weather_data) == 0:
@@ -170,8 +170,12 @@ class WeatherData:
     
     def get_forecast_at_time(self, time):
         """获取指定时间的天气预报"""
+        # 确保 time 是 aware datetime
+        time = self.ensure_localized(time)
+
         for weather in self.weather_data:
-            if weather['time'] > time:
+            weather_time = self.ensure_localized(weather['time'])
+            if weather_time > time:
                 return weather
         return None
 
