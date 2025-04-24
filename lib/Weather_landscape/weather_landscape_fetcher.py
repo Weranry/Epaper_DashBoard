@@ -211,18 +211,29 @@ class SunCalculator:
         hours = 24.0 * day
         h = int(hours)
         minutes = (hours - h) * 60
-        m = int(minutes)
-        seconds = (minutes - m) * 60
-        s = int(seconds)
-        # 确保小时在合法范围内
-        if not (0 <= h < 24):
-            raise ValueError(f"Calculated hour {h} is out of range [0, 23]")
-        if not (0 <= m < 60):
-            raise ValueError(f"Calculated minute {m} is out of range [0, 59]")
-        if not (0 <= s < 60):
-            raise ValueError(f"Calculated second {s} is out of range [0, 59]")
+        seconds = (minutes - int(minutes)) * 60
 
-        return datetime.datetime(when.year, when.month, when.day, h, m, s)
+        day_offset = 0
+        while h < 0:
+            h += 24
+            day_offset -= 1
+        while h >= 24:
+            h -= 24
+            day_offset += 1
+
+        base_date = datetime.date(when.year, when.month, when.day)
+        try:
+            adjusted_date = base_date + datetime.timedelta(days=day_offset)
+        except OverflowError:
+            raise ValueError(f"Date calculation resulted in overflow for base_date={base_date}, day_offset={day_offset}")
+
+        m = max(0, min(59, int(round(minutes))))
+        s = max(0, min(59, int(round(seconds))))
+
+        try:
+            return datetime.datetime(adjusted_date.year, adjusted_date.month, adjusted_date.day, h, m, s)
+        except ValueError as e:
+            raise ValueError(f"Could not construct valid datetime. adjusted_date={adjusted_date}, h={h}, m={m}, s={s}. Original error: {e}") from e
     
     def __preptime(self, when):
         # 确保传入的时间是 offset-naive 的 UTC 时间
