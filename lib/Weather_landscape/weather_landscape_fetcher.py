@@ -37,10 +37,11 @@ class WeatherData:
         self.pressure_min = pressure_min
         self.pressure_max = pressure_max
         self.weather_data = []
-        # 使用pytz安全地计算时区偏移
-        local_now = datetime.datetime.now(pytz.timezone('Asia/Shanghai'))
-        utc_now = datetime.datetime.now(pytz.UTC)
-        self.tzoffset = (local_now.utcoffset().total_seconds()) / (60*60)
+        # 使用固定的时区
+        self.timezone = pytz.timezone('Asia/Shanghai')
+        # 计算时区偏移（小时）
+        now = datetime.datetime.now(self.timezone)
+        self.tzoffset = now.utcoffset().total_seconds() / 3600
         
         # 构建API请求URL
         self.reqstr = f"lat={self.lat}&lon={self.lon}&mode=json&APPID={self.api_key}"
@@ -74,8 +75,8 @@ class WeatherData:
         """处理从API获取的天气数据"""
         is_celsius = self.units_mode != self.TEMP_UNITS_FAHRENHEIT
         
-        # 使用 pytz 确保时间是 timezone-aware
-        weather_time = datetime.datetime.fromtimestamp(int(data['dt']), pytz.UTC)
+        # 创建时区感知的datetime对象
+        weather_time = datetime.datetime.fromtimestamp(int(data['dt']), self.timezone)
         
         weather_info = {
             'time': weather_time,
@@ -134,14 +135,14 @@ class WeatherData:
         return True
     
     def ensure_localized(self, dt):
-        tz = pytz.timezone('Asia/Shanghai')
+        """确保datetime对象是时区感知的"""
         if dt.tzinfo is None or dt.tzinfo.utcoffset(dt) is None:
-            return tz.localize(dt)
-        return dt.astimezone(tz)
+            return self.timezone.localize(dt)
+        return dt.astimezone(self.timezone)
     
     def get_temp_range(self, max_time):
-        """获取指定时间内的温度范围（时区安全）"""
-        # 确保 max_time 是 aware datetime
+        """获取指定时间内的温度范围"""
+        # 确保 max_time 是时区感知的
         max_time = self.ensure_localized(max_time)
 
         tmax = -999
@@ -153,10 +154,10 @@ class WeatherData:
                 is_first = False
                 continue
 
-            # 确保 weather['time'] 是 aware datetime
-            weather_time = self.ensure_localized(weather['time'])
+            # 确保 weather['time'] 是时区感知的
+            weather_time = weather['time']  # 已经在_process_weather_info中设置为时区感知
 
-            # 比较 aware datetime
+            # 比较时区感知的datetime
             if weather_time > max_time:
                 break
 
@@ -176,12 +177,12 @@ class WeatherData:
     
     def get_forecast_at_time(self, time):
         """获取指定时间的天气预报"""
-        # 确保 time 是 aware datetime
+        # 确保 time 是时区感知的
         time = self.ensure_localized(time)
 
         for weather in self.weather_data:
-            weather_time = self.ensure_localized(weather['time'])
-            if weather_time > time:
+            # weather['time'] 已经是时区感知的
+            if weather['time'] > time:
                 return weather
         return None
 
@@ -192,15 +193,18 @@ class SunCalculator:
     def __init__(self, lat, lon):
         self.lat = lat
         self.lon = lon
-        # 使用pytz安全地计算时区偏移
-        local_now = datetime.datetime.now(pytz.timezone('Asia/Shanghai'))
-        utc_now = datetime.datetime.now(pytz.UTC)
-        self.tzoffset = (local_now.utcoffset().total_seconds()) / (60*60)
+        # 使用固定的时区
+        self.timezone = pytz.timezone('Asia/Shanghai')
+        # 计算时区偏移（小时）
+        now = datetime.datetime.now(self.timezone)
+        self.tzoffset = now.utcoffset().total_seconds() / 3600
     
     def sunrise(self, when=None):
         """计算日出时间"""
         if when is None:
-            when = datetime.datetime.now()
+            when = datetime.datetime.now(self.timezone)
+        else:
+            when = self.ensure_localized(when)
         self.__preptime(when)
         self.__calc()
         return self.__timefromdecimalday(self.sunrise_t, when)
@@ -208,7 +212,9 @@ class SunCalculator:
     def sunset(self, when=None):
         """计算日落时间"""
         if when is None:
-            when = datetime.datetime.now()
+            when = datetime.datetime.now(self.timezone)
+        else:
+            when = self.ensure_localized(when)
         self.__preptime(when)
         self.__calc()
         return self.__timefromdecimalday(self.sunset_t, when)
@@ -216,14 +222,21 @@ class SunCalculator:
     def solarnoon(self, when=None):
         """计算正午时间"""
         if when is None:
-            when = datetime.datetime.now()
+            when = datetime.datetime.now(self.timezone)
+        else:
+            when = self.ensure_localized(when)
         self.__preptime(when)
         self.__calc()
         return self.__timefromdecimalday(self.solarnoon_t, when)
     
-    @staticmethod
-    def __timefromdecimalday(day, when):
-        """将小数表示的一天转换为datetime对象，确保小时值在0-23之间"""
+    def ensure_localized(self, dt):
+        """确保datetime对象是时区感知的"""
+        if dt.tzinfo is None or dt.tzinfo.utcoffset(dt) is None:
+            return self.timezone.localize(dt)
+        return dt.astimezone(self.timezone)
+    
+    def __timefromdecimalday(self, day, when):
+        """将小数表示的一天转换为datetime对象"""
         hours = 24.0 * day
         h = int(hours) % 24  # 确保小时在 0 到 23 范围内
         minutes = (hours - h) * 60
@@ -231,27 +244,33 @@ class SunCalculator:
         seconds = (minutes - m) * 60
         s = int(seconds) % 60  # 确保秒在 0 到 59 范围内
         
-        # 创建新的datetime对象，确保所有时间组件都在合法范围内
+        # 创建新的datetime对象
+        when_date = when.date()
+        
+        # 如果计算出的时间可能是第二天的，调整日期
+        if h < when.hour and h < 12:  # 如果计算出的小时比当前小时小，且是上午，可能是第二天
+            when_date = when_date + datetime.timedelta(days=1)
+        
         try:
-            dt = datetime.datetime(when.year, when.month, when.day, h, m, s)
+            dt = datetime.datetime(when_date.year, when_date.month, when_date.day, h, m, s)
             # 为结果添加时区信息
-            tz = pytz.timezone('Asia/Shanghai')
-            return tz.localize(dt)
-        except ValueError:
+            return self.timezone.localize(dt)
+        except ValueError as e:
             # 处理可能的日期溢出情况
-            next_day = when + datetime.timedelta(days=1)
-            dt = datetime.datetime(next_day.year, next_day.month, next_day.day, h, m, s)
-            tz = pytz.timezone('Asia/Shanghai')
-            return tz.localize(dt)
+            print(f"ValueError in __timefromdecimalday: {e}")
+            # 尝试创建有效的日期时间
+            next_day = when_date + datetime.timedelta(days=1)
+            dt = datetime.datetime(next_day.year, next_day.month, next_day.day, 0, 0, 0)
+            return self.timezone.localize(dt)
     
     def __preptime(self, when):
         self.day = when.toordinal() - (734124 - 40529)
         t = when.time()
         self.time = (t.hour + t.minute/60.0 + t.second/3600.0) / 24.0
-        self.timezone = self.tzoffset
+        self.timezone_hours = self.tzoffset
     
     def __calc(self):
-        timezone = self.timezone  # in hours, east is positive
+        timezone = self.timezone_hours  # in hours, east is positive
         longitude = self.lon      # in decimal degrees, east is positive
         latitude = self.lat       # in decimal degrees, north is positive
         
