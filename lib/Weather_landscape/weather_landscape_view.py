@@ -324,7 +324,60 @@ class Sprites:
 
 
 class WeatherDrawer:
-    # ... existing code ...
+    """天气绘图器"""
+    
+    # 绘图常量
+    XSTART = 32
+    XSTEP = 44
+    XFLAT = 10
+    YSTEP = 50
+    DEFAULT_DEGREE_PER_PIXEL = 0.5
+    FLOWER_RIGHT_PX = 15
+    FLOWER_LEFT_PX = 10
+    DRAWOFFSET = 235
+    IMAGE_WIDTH = 400
+    IMAGE_HEIGHT = 300
+    SPRITES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sprite")
+    
+    @staticmethod
+    def my_bezier_func(t, d0, d1, d2, d3):
+        """贝塞尔曲线计算"""
+        return (1 - t) * ((1 - t) * ((1 - t) * d0 + t * d1) + t * ((1 - t) * d1 + t * d2)) + t * ((1 - t) * ((1 - t) * d1 + t * d2) + t * ((1 - t) * d2 + t * d3))
+    
+    def my_bezier(self, x, xa, ya, xb, yb):
+        """计算贝塞尔曲线上的点"""
+        xc = (xb + xa) / 2.0
+        d = xb - xa
+        t = float(x - xa) / float(d)
+        y = WeatherDrawer.my_bezier_func(t, ya, ya, yb, yb)
+        return int(y)
+    
+    def __init__(self):
+        """初始化绘图器"""
+        pass
+    
+    def time_diff_to_pixels(self, dt):
+        """将时间差转换为像素"""
+        ds = dt.total_seconds()
+        seconds_per_pixel = (WeatherData.FORECAST_PERIOD_HOURS * 60 * 60) / WeatherDrawer.XSTEP
+        return int(ds / seconds_per_pixel)
+    
+    def deg_to_pix(self, t):
+        """将温度转换为像素位置"""
+        n = (t - self.tmin) / self.degree_per_pixel
+        y = self.ypos + self.YSTEP - int(n)
+        return y
+    
+    def block_range(self, tline, x0, x1):
+        """阻止指定范围的绘制"""
+        for x in range(x0, x1):
+            if x < len(tline):
+                tline[x] = Sprites.DISABLED
+    
+    def draw_temperature(self, f, x, y, sprite):
+        """绘制温度"""
+        temp = f['temp']
+        sprite.DrawInt(temp, x, y + 10, True, 1)
 
     def draw_weather(self, weather_data: WeatherData): # Add type hint
         """绘制天气图"""
@@ -362,7 +415,21 @@ class WeatherDrawer:
 
         # ... (获取温度范围 temp_range_result, 计算 degree_per_pixel) ...
         temp_range_result = weather_data.get_temp_range(max_time_naive)
-        # ... (rest of temp range and degree_per_pixel calculation) ...
+        if temp_range_result is None:
+            print("Warning: Could not get temperature range. Using default.")
+            self.tmin, self.tmax = 0, 20 # Example default range
+        else:
+            self.tmin, self.tmax = temp_range_result
+
+        self.temp_range = self.tmax - self.tmin
+
+        if self.temp_range <= 0:
+            self.degree_per_pixel = self.DEFAULT_DEGREE_PER_PIXEL
+        else:
+            self.degree_per_pixel = self.temp_range / float(self.YSTEP)
+        
+        if self.degree_per_pixel == 0:
+            self.degree_per_pixel = self.DEFAULT_DEGREE_PER_PIXEL
 
         # ... (初始化 tline, old_temp, old_y using f_current) ...
         initial_y = self.ypos + self.YSTEP // 2
@@ -386,8 +453,29 @@ class WeatherDrawer:
         # ... (绘制初始元素: 房屋、烟雾、温度、云雨雪 - 使用 f_current) ...
         y_clouds = int(self.ypos - self.YSTEP / 2)
         if f_current and 'pressure' in f_current and 'clouds' in f_current and 'rain' in f_current and 'snow' in f_current:
-            # ... (drawing house, smoke, temp, cloud, rain, snow) ...
-            pass # Assuming this part is correct
+            # 绘制房屋
+            sprite.Draw("house", 0, 0, old_y)
+            
+            # 根据气压计算烟雾角度
+            curr_hpa = f_current['pressure']
+            pressure_range = weather_data.pressure_max - weather_data.pressure_min
+            if pressure_range <= 0:
+                smoke_angle_deg = 45
+            else:
+                smoke_angle_deg = ((curr_hpa - weather_data.pressure_min) / pressure_range) * 85 + 5
+            
+            smoke_angle_deg = max(0.0, min(90.0, smoke_angle_deg))
+            
+            # 绘制烟雾
+            sprite.DrawSmoke(21, self.pic_height - old_y + 23, smoke_angle_deg)
+            
+            # 绘制温度
+            self.draw_temperature(f_current, 8, old_y, sprite)
+            
+            # 绘制云、雨和雪
+            sprite.DrawCloud(f_current['clouds'], 0, y_clouds, self.XSTART, self.YSTEP / 2)
+            sprite.DrawRain(f_current['rain'], 0, y_clouds, self.XSTART, tline)
+            sprite.DrawSnow(f_current['snow'], 0, y_clouds, self.XSTART, tline)
         else:
              print("Warning: Missing data in f_current, skipping initial drawing elements.")
 
@@ -525,7 +613,9 @@ class WeatherDrawer:
                                 self.block_range(tline, ix - self.FLOWER_LEFT_PX, ix + self.FLOWER_RIGHT_PX)
                                 drawn_events[current_date].add('noon')
             # Midnight
-            if 'midnight' not in drawn_events[current_date]:
+            next_day_date = (current_date + datetime.timedelta(days=1))
+            if next_day_date not in drawn_events: drawn_events[next_day_date] = set()
+            if 'midnight' not in drawn_events[next_day_date]:
                  offset = get_pixel_offset(t_midn_naive)
                  if offset is not None:
                       ix = int(xpos + offset)
@@ -534,7 +624,7 @@ class WeatherDrawer:
                            if line_y != Sprites.DISABLED:
                                 sprite.Draw("flower", 0, ix, line_y + 1)
                                 self.block_range(tline, ix - self.FLOWER_LEFT_PX, ix + self.FLOWER_RIGHT_PX)
-                                drawn_events[current_date].add('midnight')
+                                drawn_events[next_day_date].add('midnight')
 
 
             xpos += self.XSTEP
