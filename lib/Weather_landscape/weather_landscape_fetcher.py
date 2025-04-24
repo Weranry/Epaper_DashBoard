@@ -177,7 +177,7 @@ class WeatherData:
 class SunCalculator:
     """计算日出日落时间"""
     
-    def __init__(self, lat=40.906615, lon=111.133961):
+    def __init__(self, lat, lon):
         self.lat = lat
         self.lon = lon
         self.tzoffset = (datetime.datetime.now() - datetime.datetime.utcnow()).total_seconds()/(60*60)

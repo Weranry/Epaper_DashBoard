@@ -502,7 +502,8 @@ class WeatherDrawer:
         sun_calc = SunCalculator(weather_data.lat, weather_data.lon)
         tf = t
         xpos = self.XSTART
-        obj_counter = 0
+        sunrise_drawn = False
+        sunset_drawn = False
         
         # 绘制日出日落
         for i in range(n_forecast + 1):
@@ -518,20 +519,20 @@ class WeatherDrawer:
             y_moon = self.ypos - self.YSTEP * 5 / 8
             
             # 绘制日出
-            if (tf <= t_sunrise) and (tf + dt > t_sunrise):
+            if not sunrise_drawn and (tf <= t_sunrise) and (tf + dt > t_sunrise):
                 dx = self.time_diff_to_pixels(t_sunrise - tf) - self.XSTEP / 2
                 sprite.Draw("sun", 0, xpos + dx, y_moon)
-                obj_counter += 1
-                if obj_counter == 2:
-                    break
+                sunrise_drawn = True
             
             # 绘制日落
-            if (tf <= t_sunset) and (tf + dt > t_sunset):
+            if not sunset_drawn and (tf <= t_sunset) and (tf + dt > t_sunset):
                 dx = self.time_diff_to_pixels(t_sunset - tf) - self.XSTEP / 2
                 sprite.Draw("moon", 0, xpos + dx, y_moon)
-                obj_counter += 1
-                if obj_counter == 2:
-                    break
+                sunset_drawn = True
+
+            # Break if both have been drawn to avoid unnecessary calculations
+            if sunrise_drawn and sunset_drawn:
+                break
             
             # 绘制中午标记
             if (tf <= t_noon) and (tf + dt > t_noon):
