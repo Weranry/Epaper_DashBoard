@@ -135,23 +135,31 @@ class WeatherData:
     
     def get_temp_range(self, max_time):
         """获取指定时间内的温度范围（时区安全）"""
-        # 强制将 max_time 转为 Asia/Shanghai aware datetime
+        # 确保 max_time 是 aware datetime
         max_time = self.ensure_localized(max_time)
+
         tmax = -999
         tmin = 999
         is_first = True
+
         for weather in self.weather_data:
             if is_first:
                 is_first = False
                 continue
-            # 强制将 weather['time'] 转为 Asia/Shanghai aware datetime
+
+            # 确保 weather['time'] 是 aware datetime
             weather_time = self.ensure_localized(weather['time'])
+
+            # 比较 aware datetime
             if weather_time > max_time:
                 break
+
             if weather['temp'] > tmax:
                 tmax = weather['temp']
+
             if weather['temp'] < tmin:
                 tmin = weather['temp']
+
         return (tmin, tmax)
     
     def get_current(self):
