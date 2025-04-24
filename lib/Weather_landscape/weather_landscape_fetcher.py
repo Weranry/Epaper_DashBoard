@@ -135,9 +135,7 @@ class WeatherData:
     
     def get_temp_range(self, max_time):
         """获取指定时间内的温度范围（时区安全）"""
-        if len(self.weather_data) == 0:
-            return None
-        print("DEBUG: max_time =", max_time, "tzinfo =", getattr(max_time, 'tzinfo', None))
+        # 强制将 max_time 转为 Asia/Shanghai aware datetime
         max_time = self.ensure_localized(max_time)
         tmax = -999
         tmin = 999
@@ -146,8 +144,8 @@ class WeatherData:
             if is_first:
                 is_first = False
                 continue
+            # 强制将 weather['time'] 转为 Asia/Shanghai aware datetime
             weather_time = self.ensure_localized(weather['time'])
-            print("DEBUG: weather_time =", weather['time'], "tzinfo =", getattr(weather['time'], 'tzinfo', None))
             if weather_time > max_time:
                 break
             if weather['temp'] > tmax:
