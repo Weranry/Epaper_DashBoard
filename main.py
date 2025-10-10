@@ -24,7 +24,7 @@ from routes.one_way.one_way_api import OneWayImageAPI
 from lib.Weather_landscape.weather_landscape_api import WeatherLandscapeAPI
 
 app = Flask(__name__)
-
+app.json.ensure_ascii = False
 date_info_api = DateInfoAPI()
 date_image_api = DateImageAPI()
 weather_json_api = WeatherJsonAPI()
